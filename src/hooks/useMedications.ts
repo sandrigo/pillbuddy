@@ -42,6 +42,10 @@ export const useMedications = () => {
     ));
   };
 
+  const updateCurrentAmount = (id: string, newAmount: number) => {
+    updateMedication(id, { currentAmount: newAmount });
+  };
+
   const getDaysRemaining = (medication: Medication): number => {
     const dailyUsage = medication.dailyDosage * (
       medication.interval === 'twice-daily' ? 2 :
@@ -62,6 +66,7 @@ export const useMedications = () => {
     addMedication,
     deleteMedication,
     updateMedication,
+    updateCurrentAmount,
     getDaysRemaining,
     needsRefill
   };

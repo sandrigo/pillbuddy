@@ -8,7 +8,7 @@ import { Heart, Plus, AlertCircle } from 'lucide-react';
 
 const Index = () => {
   const [showForm, setShowForm] = useState(false);
-  const { medications, addMedication, deleteMedication, getDaysRemaining, needsRefill } = useMedications();
+  const { medications, addMedication, deleteMedication, updateCurrentAmount, getDaysRemaining, needsRefill } = useMedications();
   const { toast } = useToast();
 
   const handleAddMedication = (data: any) => {
@@ -27,6 +27,15 @@ const Index = () => {
       title: "Medikament entfernt",
       description: `${medication?.name} wurde aus Ihrer Liste entfernt.`,
       variant: "destructive",
+    });
+  };
+
+  const handleUpdateAmount = (id: string, newAmount: number) => {
+    const medication = medications.find(med => med.id === id);
+    updateCurrentAmount(id, newAmount);
+    toast({
+      title: "Vorrat aktualisiert",
+      description: `${medication?.name}: Neuer Vorrat ${newAmount} Tabletten.`,
     });
   };
 
@@ -125,6 +134,7 @@ const Index = () => {
                 daysRemaining={getDaysRemaining(medication)}
                 needsRefill={needsRefill(medication)}
                 onDelete={handleDeleteMedication}
+                onUpdateAmount={handleUpdateAmount}
               />
             ))}
           </div>

@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Pill, Calendar, AlertCircle } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Trash2, Pill, Calendar, AlertCircle, Edit3, Check, X } from 'lucide-react';
 import { Medication } from '@/types/medication';
 
 interface MedicationCardProps {
@@ -9,6 +11,7 @@ interface MedicationCardProps {
   daysRemaining: number;
   needsRefill: boolean;
   onDelete: (id: string) => void;
+  onUpdateAmount: (id: string, newAmount: number) => void;
 }
 
 const getIntervalText = (interval: Medication['interval']) => {
@@ -22,7 +25,21 @@ const getIntervalText = (interval: Medication['interval']) => {
   }
 };
 
-export const MedicationCard = ({ medication, daysRemaining, needsRefill, onDelete }: MedicationCardProps) => {
+export const MedicationCard = ({ medication, daysRemaining, needsRefill, onDelete, onUpdateAmount }: MedicationCardProps) => {
+  const [isEditingAmount, setIsEditingAmount] = useState(false);
+  const [editAmount, setEditAmount] = useState(medication.currentAmount);
+
+  const handleSaveAmount = () => {
+    if (editAmount > 0) {
+      onUpdateAmount(medication.id, editAmount);
+      setIsEditingAmount(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditAmount(medication.currentAmount);
+    setIsEditingAmount(false);
+  };
   return (
     <Card className={`shadow-soft transition-all duration-200 hover:shadow-medium ${needsRefill ? 'border-warning' : ''}`}>
       <CardHeader className="pb-3">
@@ -49,7 +66,45 @@ export const MedicationCard = ({ medication, daysRemaining, needsRefill, onDelet
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-primary" />
             <span className="text-muted-foreground">Vorrat:</span>
-            <span className="font-medium">{medication.currentAmount}</span>
+            {isEditingAmount ? (
+              <div className="flex items-center gap-1 flex-1">
+                <Input
+                  type="number"
+                  min="1"
+                  value={editAmount}
+                  onChange={(e) => setEditAmount(parseInt(e.target.value) || 0)}
+                  className="h-6 w-16 text-xs"
+                />
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={handleSaveAmount}
+                  className="h-6 w-6 p-0 text-success hover:text-success"
+                >
+                  <Check className="h-3 w-3" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={handleCancelEdit}
+                  className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1">
+                <span className="font-medium">{medication.currentAmount}</span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setIsEditingAmount(true)}
+                  className="h-4 w-4 p-0 text-muted-foreground hover:text-primary"
+                >
+                  <Edit3 className="h-3 w-3" />
+                </Button>
+              </div>
+            )}
           </div>
           
           <div className="flex items-center gap-2">
