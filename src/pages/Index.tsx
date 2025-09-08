@@ -1,14 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useMedications } from '@/hooks/useMedications';
+import { useEmailNotifications } from '@/hooks/useEmailNotifications';
 import { MedicationCard } from '@/components/MedicationCard';
 import { MedicationForm } from '@/components/MedicationForm';
+import { EmailNotificationSettings } from '@/components/EmailNotificationSettings';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Heart, Plus, AlertCircle } from 'lucide-react';
+import { Heart, Plus, AlertCircle, Mail, Settings } from 'lucide-react';
 
 const Index = () => {
   const [showForm, setShowForm] = useState(false);
+  const [showEmailSettings, setShowEmailSettings] = useState(false);
   const { medications, addMedication, deleteMedication, updateCurrentAmount, getDaysRemaining, needsRefill } = useMedications();
+  const { checkAndSendNotifications } = useEmailNotifications();
   const { toast } = useToast();
 
   const handleAddMedication = (data: any) => {
@@ -40,6 +44,13 @@ const Index = () => {
   };
 
   const refillNeeded = medications.filter(med => needsRefill(med));
+
+  // Auto-check for email notifications on app load and when medications change
+  useEffect(() => {
+    if (medications.length > 0) {
+      checkAndSendNotifications(medications, getDaysRemaining);
+    }
+  }, [medications.length]); // Only trigger on medication count change, not on every update
 
   return (
     <div className="min-h-screen bg-background">
@@ -93,14 +104,29 @@ const Index = () => {
         {/* Add Medication Button */}
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-semibold">Meine Medikamente</h2>
-          <Button
-            onClick={() => setShowForm(!showForm)}
-            className="bg-gradient-medical hover:opacity-90 transition-opacity"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            {showForm ? 'Abbrechen' : 'Hinzufügen'}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowEmailSettings(!showEmailSettings)}
+              className="flex items-center gap-2"
+            >
+              <Mail className="h-4 w-4" />
+              {showEmailSettings ? 'Schließen' : 'Email-Setup'}
+            </Button>
+            <Button
+              onClick={() => setShowForm(!showForm)}
+              className="bg-gradient-medical hover:opacity-90 transition-opacity"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              {showForm ? 'Abbrechen' : 'Hinzufügen'}
+            </Button>
+          </div>
         </div>
+
+        {/* Email Notification Settings */}
+        {showEmailSettings && (
+          <EmailNotificationSettings />
+        )}
 
         {/* Add Medication Form */}
         {showForm && (
