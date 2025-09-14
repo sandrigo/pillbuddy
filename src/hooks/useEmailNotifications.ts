@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Medication } from '@/types/medication';
+import emailjs from '@emailjs/browser';
 
 interface EmailNotification {
   medicationId: string;
@@ -10,10 +11,18 @@ interface EmailNotification {
 }
 
 const NOTIFICATION_STORAGE_KEY = 'email_notifications';
+const SMTP_CONFIG_KEY = 'smtp_config';
+
+interface SMTPConfig {
+  serviceId: string;
+  templateId: string;
+  publicKey: string;
+  toEmail: string;
+}
 
 export const useEmailNotifications = () => {
   const [notifications, setNotifications] = useState<EmailNotification[]>([]);
-  const [webhookUrl, setWebhookUrl] = useState<string>('');
+  const [smtpConfig, setSMTPConfig] = useState<SMTPConfig | null>(null);
 
   useEffect(() => {
     // Load notifications from localStorage
@@ -26,10 +35,10 @@ export const useEmailNotifications = () => {
       })));
     }
 
-    // Load webhook URL
-    const storedWebhook = localStorage.getItem('zapier_webhook_url');
-    if (storedWebhook) {
-      setWebhookUrl(storedWebhook);
+    // Load SMTP config
+    const storedConfig = localStorage.getItem(SMTP_CONFIG_KEY);
+    if (storedConfig) {
+      setSMTPConfig(JSON.parse(storedConfig));
     }
   }, []);
 
@@ -38,9 +47,13 @@ export const useEmailNotifications = () => {
     localStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify(newNotifications));
   };
 
-  const saveWebhookUrl = (url: string) => {
-    setWebhookUrl(url);
-    localStorage.setItem('zapier_webhook_url', url);
+  const saveSMTPConfig = (config: SMTPConfig | null) => {
+    setSMTPConfig(config);
+    if (config) {
+      localStorage.setItem(SMTP_CONFIG_KEY, JSON.stringify(config));
+    } else {
+      localStorage.removeItem(SMTP_CONFIG_KEY);
+    }
   };
 
   const shouldSendNotification = (medication: Medication, daysRemaining: number): 'two-weeks' | 'one-week' | 'daily' | null => {
@@ -76,27 +89,29 @@ export const useEmailNotifications = () => {
     daysRemaining: number, 
     type: 'two-weeks' | 'one-week' | 'daily'
   ): Promise<boolean> => {
-    if (!webhookUrl) {
-      console.error('No webhook URL configured');
+    if (!smtpConfig) {
+      console.error('No SMTP configuration found');
       return false;
     }
 
     try {
-      const response = await fetch(webhookUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        mode: 'no-cors',
-        body: JSON.stringify({
-          medicationName: medication.name,
-          daysRemaining: daysRemaining,
-          currentAmount: medication.currentAmount,
-          notificationType: type,
-          timestamp: new Date().toISOString(),
-          message: getNotificationMessage(medication.name, daysRemaining, type)
-        }),
-      });
+      const templateParams = {
+        to_email: smtpConfig.toEmail,
+        subject: getEmailSubject(medication.name, daysRemaining, type),
+        message: getNotificationMessage(medication.name, daysRemaining, type),
+        medication_name: medication.name,
+        days_remaining: daysRemaining.toString(),
+        current_amount: medication.currentAmount.toString(),
+        notification_type: type,
+        timestamp: new Date().toLocaleString('de-DE'),
+      };
+
+      await emailjs.send(
+        smtpConfig.serviceId,
+        smtpConfig.templateId,
+        templateParams,
+        smtpConfig.publicKey
+      );
 
       // Update notification tracking
       const updatedNotifications = notifications.filter(n => n.medicationId !== medication.id);
@@ -116,14 +131,27 @@ export const useEmailNotifications = () => {
     }
   };
 
+  const getEmailSubject = (medicationName: string, daysRemaining: number, type: string): string => {
+    switch (type) {
+      case 'two-weeks':
+        return `📋 Tabletten-Erinnerung: ${medicationName} (${daysRemaining} Tage)`;
+      case 'one-week':
+        return `⚠️ Wichtig: ${medicationName} bald leer (${daysRemaining} Tage)`;
+      case 'daily':
+        return `🚨 DRINGEND: ${medicationName} (${daysRemaining} Tag${daysRemaining !== 1 ? 'e' : ''})`;
+      default:
+        return `Tabletten-Erinnerung: ${medicationName}`;
+    }
+  };
+
   const getNotificationMessage = (medicationName: string, daysRemaining: number, type: string): string => {
     switch (type) {
       case 'two-weeks':
-        return `⚠️ Tabletten-Erinnerung: ${medicationName} reicht noch ${daysRemaining} Tage. Zeit zum Nachbestellen!`;
+        return `⚠️ Hallo!\n\nIhre Tabletten "${medicationName}" reichen noch ${daysRemaining} Tage. Es wird Zeit, diese nachzubestellen!\n\nBitte wenden Sie sich an Ihren Arzt oder Ihre Apotheke.\n\nViele Grüße\nIhr Tabletten-Tracker`;
       case 'one-week':
-        return `🚨 Wichtige Erinnerung: ${medicationName} reicht nur noch ${daysRemaining} Tage! Bitte dringend nachbestellen.`;
+        return `🚨 Wichtige Erinnerung!\n\nIhre Tabletten "${medicationName}" reichen nur noch ${daysRemaining} Tage! Bitte bestellen Sie diese dringend nach.\n\nKontaktieren Sie umgehend Ihren Arzt oder Ihre Apotheke.\n\nViele Grüße\nIhr Tabletten-Tracker`;
       case 'daily':
-        return `🔴 DRINGEND: ${medicationName} reicht nur noch ${daysRemaining} Tag${daysRemaining !== 1 ? 'e' : ''}! Sofort nachbestellen!`;
+        return `🔴 DRINGENDE WARNUNG!\n\nIhre Tabletten "${medicationName}" reichen nur noch ${daysRemaining} Tag${daysRemaining !== 1 ? 'e' : ''}! Sie müssen diese SOFORT nachbestellen.\n\nRufen Sie heute noch Ihren Arzt oder Ihre Apotheke an!\n\nViele Grüße\nIhr Tabletten-Tracker`;
       default:
         return `Tabletten-Erinnerung für ${medicationName}`;
     }
@@ -152,11 +180,12 @@ export const useEmailNotifications = () => {
 
   return {
     notifications,
-    webhookUrl,
-    saveWebhookUrl,
+    smtpConfig,
+    saveSMTPConfig,
     shouldSendNotification,
     sendEmailNotification,
     checkAndSendNotifications,
-    getNotificationMessage
+    getNotificationMessage,
+    getEmailSubject
   };
 };

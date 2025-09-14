@@ -10,35 +10,51 @@ import { useMedications } from '@/hooks/useMedications';
 import { Mail, Send, Settings, CheckCircle, AlertTriangle, ExternalLink } from 'lucide-react';
 
 export const EmailNotificationSettings = () => {
-  const [tempWebhookUrl, setTempWebhookUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { webhookUrl, saveWebhookUrl, checkAndSendNotifications } = useEmailNotifications();
+  const [showConfig, setShowConfig] = useState(false);
+  const [tempConfig, setTempConfig] = useState({
+    serviceId: '',
+    templateId: '',
+    publicKey: '',
+    toEmail: ''
+  });
+  const { smtpConfig, saveSMTPConfig, checkAndSendNotifications } = useEmailNotifications();
   const { medications, getDaysRemaining } = useMedications();
   const { toast } = useToast();
 
-  const handleSaveWebhook = () => {
-    if (!tempWebhookUrl.trim()) {
+  const handleSaveConfig = () => {
+    if (!tempConfig.serviceId || !tempConfig.templateId || !tempConfig.publicKey || !tempConfig.toEmail) {
       toast({
         title: "Fehler",
-        description: "Bitte geben Sie eine gültige Zapier Webhook URL ein",
+        description: "Bitte füllen Sie alle Felder aus",
         variant: "destructive",
       });
       return;
     }
 
-    saveWebhookUrl(tempWebhookUrl.trim());
-    setTempWebhookUrl('');
+    if (!tempConfig.toEmail.includes('@')) {
+      toast({
+        title: "Fehler",
+        description: "Bitte geben Sie eine gültige E-Mail-Adresse ein",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    saveSMTPConfig(tempConfig);
+    setShowConfig(false);
+    setTempConfig({ serviceId: '', templateId: '', publicKey: '', toEmail: '' });
     toast({
-      title: "Webhook gespeichert",
-      description: "Zapier Webhook URL wurde erfolgreich gespeichert",
+      title: "SMTP konfiguriert",
+      description: "E-Mail-Einstellungen wurden erfolgreich gespeichert",
     });
   };
 
   const handleTestNotifications = async () => {
-    if (!webhookUrl) {
+    if (!smtpConfig) {
       toast({
         title: "Fehler",
-        description: "Bitte konfigurieren Sie zunächst die Zapier Webhook URL",
+        description: "Bitte konfigurieren Sie zunächst die E-Mail-Einstellungen",
         variant: "destructive",
       });
       return;
@@ -89,11 +105,11 @@ export const EmailNotificationSettings = () => {
       </CardHeader>
       
       <CardContent className="space-y-4">
-        {/* Webhook Configuration */}
+        {/* SMTP Configuration */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <Label className="text-sm font-medium">Zapier Webhook Status</Label>
-            {webhookUrl ? (
+            <Label className="text-sm font-medium">E-Mail Status</Label>
+            {smtpConfig ? (
               <Badge variant="outline" className="border-success text-success">
                 <CheckCircle className="h-3 w-3 mr-1" />
                 Konfiguriert
@@ -106,37 +122,82 @@ export const EmailNotificationSettings = () => {
             )}
           </div>
           
-          {!webhookUrl ? (
-            <div className="space-y-2">
-              <Label htmlFor="webhook">Zapier Webhook URL</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="webhook"
-                  type="url"
-                  value={tempWebhookUrl}
-                  onChange={(e) => setTempWebhookUrl(e.target.value)}
-                  placeholder="https://hooks.zapier.com/hooks/catch/..."
-                  className="flex-1"
-                />
-                <Button onClick={handleSaveWebhook} variant="outline">
-                  <Settings className="h-4 w-4" />
+          {!smtpConfig ? (
+            !showConfig ? (
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  Konfigurieren Sie EmailJS für kostenlose E-Mail-Benachrichtigungen
+                </p>
+                <Button onClick={() => setShowConfig(true)} variant="outline" className="w-full">
+                  <Settings className="h-4 w-4 mr-2" />
+                  E-Mail konfigurieren
                 </Button>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Erstellen Sie einen Zap mit "Webhooks by Zapier" als Trigger und einem Email-Service als Action.
-              </p>
-            </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="grid grid-cols-1 gap-3">
+                  <div>
+                    <Label htmlFor="serviceId">Service ID</Label>
+                    <Input
+                      id="serviceId"
+                      value={tempConfig.serviceId}
+                      onChange={(e) => setTempConfig({...tempConfig, serviceId: e.target.value})}
+                      placeholder="service_xxxxxxx"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="templateId">Template ID</Label>
+                    <Input
+                      id="templateId"
+                      value={tempConfig.templateId}
+                      onChange={(e) => setTempConfig({...tempConfig, templateId: e.target.value})}
+                      placeholder="template_xxxxxxx"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="publicKey">Public Key</Label>
+                    <Input
+                      id="publicKey"
+                      value={tempConfig.publicKey}
+                      onChange={(e) => setTempConfig({...tempConfig, publicKey: e.target.value})}
+                      placeholder="xxxxxxxxxxxxxxx"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="toEmail">Ihre E-Mail</Label>
+                    <Input
+                      id="toEmail"
+                      type="email"
+                      value={tempConfig.toEmail}
+                      onChange={(e) => setTempConfig({...tempConfig, toEmail: e.target.value})}
+                      placeholder="ihre@email.de"
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button onClick={handleSaveConfig} className="flex-1">
+                    Speichern
+                  </Button>
+                  <Button onClick={() => setShowConfig(false)} variant="outline">
+                    Abbrechen
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Erstellen Sie kostenlos einen Account bei EmailJS und konfigurieren Sie einen E-Mail-Service.
+                </p>
+              </div>
+            )
           ) : (
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground">
-                Webhook konfiguriert: {webhookUrl.substring(0, 40)}...
+                E-Mail konfiguriert für: {smtpConfig.toEmail}
               </p>
               <Button 
                 variant="outline" 
                 size="sm" 
                 onClick={() => {
-                  saveWebhookUrl('');
-                  toast({ title: "Webhook entfernt", description: "Zapier Webhook wurde entfernt" });
+                  saveSMTPConfig(null);
+                  toast({ title: "E-Mail entfernt", description: "E-Mail-Konfiguration wurde entfernt" });
                 }}
               >
                 Neu konfigurieren
@@ -180,7 +241,7 @@ export const EmailNotificationSettings = () => {
         <div className="flex flex-col gap-2">
           <Button 
             onClick={handleTestNotifications}
-            disabled={!webhookUrl || isLoading}
+            disabled={!smtpConfig || isLoading}
             className="w-full"
           >
             <Send className="h-4 w-4 mr-2" />
@@ -190,10 +251,10 @@ export const EmailNotificationSettings = () => {
           <Button 
             variant="outline" 
             size="sm" 
-            onClick={() => window.open('https://zapier.com/apps/webhooks/integrations', '_blank')}
+            onClick={() => window.open('https://www.emailjs.com', '_blank')}
           >
             <ExternalLink className="h-4 w-4 mr-2" />
-            Zapier Webhook erstellen
+            EmailJS Account erstellen
           </Button>
         </div>
       </CardContent>
