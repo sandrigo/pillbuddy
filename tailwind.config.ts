@@ -82,6 +82,7 @@ export default {
       boxShadow: {
         'soft': 'var(--shadow-soft)',
         'medium': 'var(--shadow-medium)',
+        'gentle': 'var(--shadow-gentle)',
       },
       keyframes: {
         "accordion-down": {

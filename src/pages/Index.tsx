@@ -7,6 +7,7 @@ import { EmailNotificationSettings } from '@/components/EmailNotificationSetting
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Heart, Plus, AlertCircle, Mail, Settings } from 'lucide-react';
+import pillbuddyLogo from '@/assets/pillbuddy-logo.png';
 
 const Index = () => {
   const [showForm, setShowForm] = useState(false);
@@ -55,15 +56,23 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-gradient-medical text-white">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-white/20 rounded-lg">
-              <Heart className="h-6 w-6" />
+      <header className="bg-gradient-to-br from-primary/20 via-accent/10 to-primary/10 border-b border-border/50">
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex flex-col items-center text-center space-y-4">
+            <div className="flex items-center gap-4">
+              <img 
+                src={pillbuddyLogo} 
+                alt="PillBuddy Logo" 
+                className="w-16 h-16 rounded-full shadow-gentle"
+              />
+              <div>
+                <h1 className="text-3xl font-bold text-foreground">PillBuddy</h1>
+                <p className="text-muted-foreground">Ihr digitaler Medikamenten-Assistent</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold">Tabletten Tracker</h1>
-              <p className="text-white/90">Ihre Medikamente im Überblick</p>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Heart className="h-4 w-4 text-primary" />
+              <span>Gesund bleiben leicht gemacht</span>
             </div>
           </div>
         </div>
@@ -73,15 +82,15 @@ const Index = () => {
         {/* Stats */}
         {medications.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-card rounded-lg p-4 shadow-soft">
+            <div className="bg-card rounded-lg p-4 shadow-gentle border border-border/50">
               <div className="text-2xl font-bold text-primary">{medications.length}</div>
               <div className="text-sm text-muted-foreground">Medikamente gesamt</div>
             </div>
-            <div className="bg-card rounded-lg p-4 shadow-soft">
+            <div className="bg-card rounded-lg p-4 shadow-gentle border border-border/50">
               <div className="text-2xl font-bold text-success">{medications.length - refillNeeded.length}</div>
               <div className="text-sm text-muted-foreground">Ausreichend vorrätig</div>
             </div>
-            <div className="bg-card rounded-lg p-4 shadow-soft">
+            <div className="bg-card rounded-lg p-4 shadow-gentle border border-border/50">
               <div className="text-2xl font-bold text-warning">{refillNeeded.length}</div>
               <div className="text-sm text-muted-foreground">Nachschub benötigt</div>
             </div>
@@ -90,7 +99,7 @@ const Index = () => {
 
         {/* Refill Alerts */}
         {refillNeeded.length > 0 && (
-          <div className="bg-warning/10 border border-warning/20 rounded-lg p-4">
+          <div className="bg-warning/5 border border-warning/20 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-3">
               <AlertCircle className="h-5 w-5 text-warning" />
               <h3 className="font-semibold text-warning-foreground">Nachschub benötigt</h3>
@@ -108,14 +117,14 @@ const Index = () => {
             <Button
               variant="outline"
               onClick={() => setShowEmailSettings(!showEmailSettings)}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 border-primary/30 text-primary hover:bg-primary/5"
             >
               <Mail className="h-4 w-4" />
               {showEmailSettings ? 'Schließen' : 'Email-Setup'}
             </Button>
             <Button
               onClick={() => setShowForm(!showForm)}
-              className="bg-gradient-medical hover:opacity-90 transition-opacity"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-gentle"
             >
               <Plus className="h-4 w-4 mr-2" />
               {showForm ? 'Abbrechen' : 'Hinzufügen'}
@@ -136,16 +145,16 @@ const Index = () => {
         {/* Medications List */}
         {medications.length === 0 ? (
           <div className="text-center py-12">
-            <div className="p-4 bg-muted/50 rounded-full w-fit mx-auto mb-4">
-              <Heart className="h-8 w-8 text-muted-foreground" />
+            <div className="p-4 bg-primary/5 rounded-full w-fit mx-auto mb-4">
+              <Heart className="h-8 w-8 text-primary" />
             </div>
-            <h3 className="text-lg font-semibold mb-2">Keine Medikamente hinzugefügt</h3>
-            <p className="text-muted-foreground mb-4">
-              Fügen Sie Ihr erstes Medikament hinzu, um mit dem Tracking zu beginnen.
+            <h3 className="text-lg font-semibold mb-2">Willkommen bei PillBuddy!</h3>
+            <p className="text-muted-foreground mb-4 max-w-md mx-auto">
+              Fügen Sie Ihr erstes Medikament hinzu, um mit der sanften Verwaltung Ihrer Gesundheit zu beginnen.
             </p>
             <Button 
               onClick={() => setShowForm(true)}
-              className="bg-gradient-medical hover:opacity-90 transition-opacity"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-gentle"
             >
               <Plus className="h-4 w-4 mr-2" />
               Erstes Medikament hinzufügen

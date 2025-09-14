@@ -41,7 +41,7 @@ export const MedicationCard = ({ medication, daysRemaining, needsRefill, onDelet
     setIsEditingAmount(false);
   };
   return (
-    <Card className={`shadow-soft transition-all duration-200 hover:shadow-medium ${needsRefill ? 'border-warning' : ''}`}>
+    <Card className={`shadow-gentle hover:shadow-soft transition-all duration-200 border-border/50 ${needsRefill ? 'border-warning/30 bg-warning/5' : ''}`}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2">
