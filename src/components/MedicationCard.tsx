@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Trash2, Pill, Calendar, AlertCircle, Edit3, Check, X } from 'lucide-react';
+import { Trash2, Pill, Calendar, AlertCircle, Edit3, Check, X, Settings } from 'lucide-react';
+import { MedicationEditForm } from './MedicationEditForm';
 import { Medication } from '@/types/medication';
 
 interface MedicationCardProps {
@@ -12,6 +13,7 @@ interface MedicationCardProps {
   needsRefill: boolean;
   onDelete: (id: string) => void;
   onUpdateAmount: (id: string, newAmount: number) => void;
+  onUpdateMedication: (id: string, updates: Partial<Medication>) => void;
 }
 
 const getIntervalText = (interval: Medication['interval']) => {
@@ -25,8 +27,9 @@ const getIntervalText = (interval: Medication['interval']) => {
   }
 };
 
-export const MedicationCard = ({ medication, daysRemaining, needsRefill, onDelete, onUpdateAmount }: MedicationCardProps) => {
+export const MedicationCard = ({ medication, daysRemaining, needsRefill, onDelete, onUpdateAmount, onUpdateMedication }: MedicationCardProps) => {
   const [isEditingAmount, setIsEditingAmount] = useState(false);
+  const [isEditingMedication, setIsEditingMedication] = useState(false);
   const [editAmount, setEditAmount] = useState(medication.currentAmount);
 
   const handleSaveAmount = () => {
@@ -40,6 +43,22 @@ export const MedicationCard = ({ medication, daysRemaining, needsRefill, onDelet
     setEditAmount(medication.currentAmount);
     setIsEditingAmount(false);
   };
+
+  const handleUpdateMedication = (id: string, updates: Partial<Medication>) => {
+    onUpdateMedication(id, updates);
+    setIsEditingMedication(false);
+  };
+
+  if (isEditingMedication) {
+    return (
+      <MedicationEditForm
+        medication={medication}
+        onSubmit={handleUpdateMedication}
+        onCancel={() => setIsEditingMedication(false)}
+      />
+    );
+  }
+
   return (
     <Card className={`shadow-gentle hover:shadow-soft transition-all duration-200 border-border/50 ${needsRefill ? 'border-warning/30 bg-warning/5' : ''}`}>
       <CardHeader className="pb-3">
@@ -50,14 +69,24 @@ export const MedicationCard = ({ medication, daysRemaining, needsRefill, onDelet
             </div>
             <CardTitle className="text-lg font-semibold">{medication.name}</CardTitle>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onDelete(medication.id)}
-            className="text-muted-foreground hover:text-destructive"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          <div className="flex gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsEditingMedication(true)}
+              className="text-muted-foreground hover:text-primary"
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onDelete(medication.id)}
+              className="text-muted-foreground hover:text-destructive"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </CardHeader>
       

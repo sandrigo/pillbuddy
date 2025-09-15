@@ -18,6 +18,7 @@ interface SMTPConfig {
   templateId: string;
   publicKey: string;
   toEmail: string;
+  notificationTime?: string; // Format: "HH:MM"
 }
 
 export const useEmailNotifications = () => {
@@ -57,30 +58,42 @@ export const useEmailNotifications = () => {
   };
 
   const shouldSendNotification = (medication: Medication, daysRemaining: number): 'two-weeks' | 'one-week' | 'daily' | null => {
-    const existing = notifications.find(n => n.medicationId === medication.id);
     const now = new Date();
-    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-
-    // Check if we should send 2-week warning
-    if (daysRemaining <= 14 && daysRemaining > 7) {
-      if (!existing || existing.type !== 'two-weeks') {
+    const today = now.toDateString();
+    
+    // Check if notification time is set and if current time matches
+    if (smtpConfig?.notificationTime) {
+      const [hours, minutes] = smtpConfig.notificationTime.split(':').map(Number);
+      const currentHour = now.getHours();
+      const currentMinute = now.getMinutes();
+      
+      // Only send notifications at the specified time (within a 5-minute window)
+      const timeDiff = Math.abs((currentHour * 60 + currentMinute) - (hours * 60 + minutes));
+      if (timeDiff > 5) {
+        return null;
+      }
+    }
+    
+    // Find existing notification for this medication
+    const existingNotification = notifications.find(n => n.medicationId === medication.id);
+    
+    if (daysRemaining <= 7) {
+      // Daily notifications for 1-7 days
+      if (!existingNotification || existingNotification.lastSent.toDateString() !== today || existingNotification.type !== 'daily') {
+        return 'daily';
+      }
+    } else if (daysRemaining <= 14 && daysRemaining > 7) {
+      // One week warning
+      if (!existingNotification || existingNotification.type !== 'one-week') {
+        return 'one-week';
+      }
+    } else if (daysRemaining <= 21 && daysRemaining > 14) {
+      // Two weeks warning
+      if (!existingNotification || existingNotification.type !== 'two-weeks') {
         return 'two-weeks';
       }
     }
-
-    // Check if we should send 1-week warning
-    if (daysRemaining <= 7 && daysRemaining > 0) {
-      if (!existing || existing.type === 'two-weeks' || 
-          (existing.type === 'one-week' && existing.lastSent < oneDayAgo)) {
-        return daysRemaining === 7 ? 'one-week' : 'daily';
-      }
-      
-      // Send daily notifications when <= 7 days
-      if (existing && existing.type === 'daily' && existing.lastSent < oneDayAgo) {
-        return 'daily';
-      }
-    }
-
+    
     return null;
   };
 

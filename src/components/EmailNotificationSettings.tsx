@@ -16,7 +16,8 @@ export const EmailNotificationSettings = () => {
     serviceId: '',
     templateId: '',
     publicKey: '',
-    toEmail: ''
+    toEmail: '',
+    notificationTime: '09:00'
   });
   const { smtpConfig, saveSMTPConfig, checkAndSendNotifications } = useEmailNotifications();
   const { medications, getDaysRemaining } = useMedications();
@@ -43,7 +44,7 @@ export const EmailNotificationSettings = () => {
 
     saveSMTPConfig(tempConfig);
     setShowConfig(false);
-    setTempConfig({ serviceId: '', templateId: '', publicKey: '', toEmail: '' });
+    setTempConfig({ serviceId: '', templateId: '', publicKey: '', toEmail: '', notificationTime: '09:00' });
     toast({
       title: "SMTP konfiguriert",
       description: "E-Mail-Einstellungen wurden erfolgreich gespeichert",
@@ -173,6 +174,15 @@ export const EmailNotificationSettings = () => {
                       placeholder="ihre@email.de"
                     />
                   </div>
+                  <div>
+                    <Label htmlFor="notificationTime">Benachrichtigungs-Zeit</Label>
+                    <Input
+                      id="notificationTime"
+                      type="time"
+                      value={tempConfig.notificationTime}
+                      onChange={(e) => setTempConfig({...tempConfig, notificationTime: e.target.value})}
+                    />
+                  </div>
                 </div>
                 <div className="flex gap-2">
                   <Button onClick={handleSaveConfig} className="flex-1">
@@ -192,6 +202,11 @@ export const EmailNotificationSettings = () => {
               <p className="text-sm text-muted-foreground">
                 E-Mail konfiguriert für: {smtpConfig.toEmail}
               </p>
+              {smtpConfig.notificationTime && (
+                <p className="text-sm text-muted-foreground">
+                  Benachrichtigungszeit: {smtpConfig.notificationTime} Uhr
+                </p>
+              )}
               <Button 
                 variant="outline" 
                 size="sm" 

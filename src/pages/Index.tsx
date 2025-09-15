@@ -1,18 +1,21 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useMedications } from '@/hooks/useMedications';
 import { useEmailNotifications } from '@/hooks/useEmailNotifications';
 import { MedicationCard } from '@/components/MedicationCard';
 import { MedicationForm } from '@/components/MedicationForm';
 import { EmailNotificationSettings } from '@/components/EmailNotificationSettings';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Heart, Plus, AlertCircle, Mail, Settings } from 'lucide-react';
+import { Heart, Plus, AlertCircle, Mail, Settings, Download, Upload } from 'lucide-react';
+import { Medication } from '@/types/medication';
 import pillbuddyLogo from '@/assets/pillbuddy-logo.png';
 
 const Index = () => {
   const [showForm, setShowForm] = useState(false);
   const [showEmailSettings, setShowEmailSettings] = useState(false);
-  const { medications, addMedication, deleteMedication, updateCurrentAmount, getDaysRemaining, needsRefill } = useMedications();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { medications, addMedication, deleteMedication, updateMedication, updateCurrentAmount, getDaysRemaining, needsRefill, exportMedications, importMedications } = useMedications();
   const { checkAndSendNotifications } = useEmailNotifications();
   const { toast } = useToast();
 
@@ -42,6 +45,54 @@ const Index = () => {
       title: "Vorrat aktualisiert",
       description: `${medication?.name}: Neuer Vorrat ${newAmount} Tabletten.`,
     });
+  };
+
+  const handleUpdateMedication = (id: string, updates: Partial<Medication>) => {
+    updateMedication(id, updates);
+    toast({
+      title: "Medikament aktualisiert",
+      description: "Die Änderungen wurden gespeichert.",
+    });
+  };
+
+  const handleExport = () => {
+    exportMedications();
+    toast({
+      title: "Export erfolgreich",
+      description: "Medikamentenliste wurde heruntergeladen.",
+    });
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const content = e.target?.result as string;
+        const success = importMedications(content);
+        if (success) {
+          toast({
+            title: "Import erfolgreich",
+            description: "Medikamentenliste wurde importiert.",
+          });
+        } else {
+          toast({
+            title: "Import fehlgeschlagen",
+            description: "Die Datei konnte nicht gelesen werden.",
+            variant: "destructive",
+          });
+        }
+      };
+      reader.readAsText(file);
+    }
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const refillNeeded = medications.filter(med => needsRefill(med));
@@ -113,7 +164,26 @@ const Index = () => {
         {/* Add Medication Button */}
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-semibold">Meine Medikamente</h2>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
+            <Button
+              variant="outline"
+              onClick={handleExport}
+              size="sm"
+              disabled={medications.length === 0}
+              className="flex items-center gap-2"
+            >
+              <Download className="h-4 w-4" />
+              Export
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleImportClick}
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <Upload className="h-4 w-4" />
+              Import
+            </Button>
             <Button
               variant="outline"
               onClick={() => setShowEmailSettings(!showEmailSettings)}
@@ -131,6 +201,14 @@ const Index = () => {
             </Button>
           </div>
         </div>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".json"
+          onChange={handleImport}
+          style={{ display: 'none' }}
+        />
 
         {/* Email Notification Settings */}
         {showEmailSettings && (
@@ -170,6 +248,7 @@ const Index = () => {
                 needsRefill={needsRefill(medication)}
                 onDelete={handleDeleteMedication}
                 onUpdateAmount={handleUpdateAmount}
+                onUpdateMedication={handleUpdateMedication}
               />
             ))}
           </div>
