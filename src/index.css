@@ -40,7 +40,7 @@ All colors MUST be HSL.
     --success-foreground: 210 15% 97%;
     
     --warning: 9 74.2% 77.1%;
-    --warning-foreground: 9 50% 30%;
+    --warning-foreground: 9 95.7% 36%;
 
     --medical-blue: 210 30% 75%;
     --medical-green: 142 35% 65%;
@@ -103,7 +103,7 @@ All colors MUST be HSL.
     --success-foreground: 215 25% 20%;
     
     --warning: 9 74.2% 77.1%;
-    --warning-foreground: 9 50% 30%;
+    --warning-foreground: 9 95.7% 36%;
 
     --medical-blue: 210 25% 65%;
     --medical-green: 142 30% 65%;
