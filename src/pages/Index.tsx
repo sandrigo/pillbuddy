@@ -14,6 +14,7 @@ import pillbuddyLogo from '@/assets/pillbuddy-logo.png';
 const Index = () => {
   const [showForm, setShowForm] = useState(false);
   const [showEmailSettings, setShowEmailSettings] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { medications, addMedication, deleteMedication, updateMedication, updateCurrentAmount, getDaysRemaining, needsRefill, exportMedications, importMedications } = useMedications();
   const { checkAndSendNotifications } = useEmailNotifications();
@@ -95,7 +96,10 @@ const Index = () => {
     }
   };
 
-  const refillNeeded = medications.filter(med => needsRefill(med));
+  const filteredMedications = medications.filter(med => 
+    med.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  const refillNeeded = filteredMedications.filter(med => needsRefill(med));
 
   // Auto-check for email notifications on app load and when medications change
   useEffect(() => {
@@ -158,6 +162,19 @@ const Index = () => {
             <div className="text-sm text-warning-foreground">
               {refillNeeded.map(med => med.name).join(', ')} - Bitte rechtzeitig nachbestellen!
             </div>
+          </div>
+        )}
+
+        {/* Search Bar */}
+        {medications.length > 0 && (
+          <div className="relative">
+            <Input
+              type="text"
+              placeholder="Medikament suchen..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full md:w-80"
+            />
           </div>
         )}
 
@@ -238,9 +255,13 @@ const Index = () => {
               Erstes Medikament hinzufügen
             </Button>
           </div>
+        ) : filteredMedications.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">Keine Medikamente gefunden für "{searchTerm}"</p>
+          </div>
         ) : (
           <div className="grid gap-4">
-            {medications.map((medication) => (
+            {filteredMedications.map((medication) => (
               <MedicationCard
                 key={medication.id}
                 medication={medication}

@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Trash2, Pill, Calendar, AlertCircle, Edit3, Check, X, Settings } from 'lucide-react';
+import { Trash2, Pill, Calendar, AlertCircle, Edit3, Check, X, Settings, CalendarDays } from 'lucide-react';
 import { MedicationEditForm } from './MedicationEditForm';
 import { Medication } from '@/types/medication';
 
@@ -47,6 +47,24 @@ export const MedicationCard = ({ medication, daysRemaining, needsRefill, onDelet
   const handleUpdateMedication = (id: string, updates: Partial<Medication>) => {
     onUpdateMedication(id, updates);
     setIsEditingMedication(false);
+  };
+
+  const getZeroDate = () => {
+    const dailyUsage = medication.dailyDosage * (
+      medication.interval === 'twice-daily' ? 2 :
+      medication.interval === 'three-times-daily' ? 3 :
+      medication.interval === 'weekly' ? 1/7 :
+      medication.interval === 'as-needed' ? 0.5 : 1
+    );
+    
+    const zeroDate = new Date();
+    zeroDate.setDate(zeroDate.getDate() + Math.floor(medication.currentAmount / dailyUsage));
+    
+    return zeroDate.toLocaleDateString('de-DE', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
   };
 
   if (isEditingMedication) {
@@ -141,6 +159,12 @@ export const MedicationCard = ({ medication, daysRemaining, needsRefill, onDelet
             <span className="text-muted-foreground">Dosierung:</span>
             <span className="font-medium">{medication.dailyDosage}</span>
           </div>
+        </div>
+        
+        <div className="flex items-center gap-2 text-sm">
+          <CalendarDays className="h-4 w-4 text-muted-foreground" />
+          <span className="text-muted-foreground">Leer am:</span>
+          <span className="font-medium">{getZeroDate()}</span>
         </div>
         
         <div className="flex items-center gap-2 text-sm">
