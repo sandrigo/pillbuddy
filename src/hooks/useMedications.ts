@@ -53,12 +53,22 @@ export const useMedications = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(newMedications));
   };
 
-  const addMedication = (data: MedicationFormData) => {
+  const addMedication = async (data: MedicationFormData) => {
     const newMedication: Medication = {
       ...data,
       id: Date.now().toString(),
       createdAt: new Date(),
     };
+    
+    // Search for image if PZN is provided
+    if (data.pzn) {
+      const { searchMedicationImage } = await import('@/utils/medicationImageSearch');
+      const imageUrl = await searchMedicationImage(data.pzn);
+      if (imageUrl) {
+        newMedication.imageUrl = imageUrl;
+      }
+    }
+    
     saveMedications([...medications, newMedication]);
   };
 
@@ -66,7 +76,16 @@ export const useMedications = () => {
     saveMedications(medications.filter(med => med.id !== id));
   };
 
-  const updateMedication = (id: string, updates: Partial<Medication>) => {
+  const updateMedication = async (id: string, updates: Partial<Medication>) => {
+    // Search for image if PZN is being updated
+    if (updates.pzn) {
+      const { searchMedicationImage } = await import('@/utils/medicationImageSearch');
+      const imageUrl = await searchMedicationImage(updates.pzn);
+      if (imageUrl) {
+        updates.imageUrl = imageUrl;
+      }
+    }
+    
     saveMedications(medications.map(med => 
       med.id === id ? { ...med, ...updates } : med
     ));

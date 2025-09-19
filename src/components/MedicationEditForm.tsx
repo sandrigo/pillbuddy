@@ -16,6 +16,7 @@ interface MedicationEditFormProps {
 export const MedicationEditForm = ({ medication, onSubmit, onCancel }: MedicationEditFormProps) => {
   const [formData, setFormData] = useState<MedicationFormData>({
     name: medication.name,
+    pzn: medication.pzn || '',
     currentAmount: medication.currentAmount,
     dailyDosage: medication.dailyDosage,
     interval: medication.interval,
@@ -49,6 +50,20 @@ export const MedicationEditForm = ({ medication, onSubmit, onCancel }: Medicatio
               placeholder="z.B. Ibuprofen 400mg"
               required
             />
+          </div>
+
+          <div>
+            <Label htmlFor="pzn">PZN (optional)</Label>
+            <Input
+              id="pzn"
+              value={formData.pzn || ''}
+              onChange={(e) => setFormData({ ...formData, pzn: e.target.value })}
+              placeholder="z.B. 12345678"
+              maxLength={8}
+            />
+            <p className="text-xs text-muted-foreground">
+              Pharmazentralnummer für automatische Bildersuche
+            </p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

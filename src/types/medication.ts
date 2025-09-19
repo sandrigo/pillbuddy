@@ -1,6 +1,8 @@
 export interface Medication {
   id: string;
   name: string;
+  pzn?: string;
+  imageUrl?: string;
   currentAmount: number;
   dailyDosage: number;
   interval: 'daily' | 'twice-daily' | 'three-times-daily' | 'weekly' | 'as-needed';
@@ -11,6 +13,7 @@ export interface Medication {
 
 export interface MedicationFormData {
   name: string;
+  pzn?: string;
   currentAmount: number;
   dailyDosage: number;
   interval: Medication['interval'];
