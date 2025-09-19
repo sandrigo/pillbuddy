@@ -3,6 +3,9 @@ export interface Medication {
   name: string;
   pzn?: string;
   imageUrl?: string;
+  description?: string;
+  activeIngredient?: string;
+  indication?: string;
   currentAmount: number;
   dailyDosage: number;
   interval: 'daily' | 'twice-daily' | 'three-times-daily' | 'weekly' | 'as-needed';

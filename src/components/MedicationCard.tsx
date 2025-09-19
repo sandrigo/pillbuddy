@@ -196,6 +196,30 @@ export const MedicationCard = ({ medication, daysRemaining, needsRefill, onDelet
           <span className="font-medium">{getIntervalText(medication.interval)}</span>
         </div>
         
+        {/* Medikamenteninfo */}
+        {(medication.description || medication.activeIngredient || medication.indication) && (
+          <div className="mt-4 p-3 bg-muted/30 rounded-lg border">
+            <h4 className="text-sm font-semibold mb-2 text-primary">Medikamenteninfo</h4>
+            <div className="space-y-1 text-xs">
+              {medication.activeIngredient && (
+                <div>
+                  <span className="font-medium">Wirkstoff:</span> {medication.activeIngredient}
+                </div>
+              )}
+              {medication.indication && (
+                <div>
+                  <span className="font-medium">Anwendung:</span> {medication.indication}
+                </div>
+              )}
+              {medication.description && (
+                <div>
+                  <span className="font-medium">Beschreibung:</span> {medication.description}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        
         <div className="flex items-center justify-between pt-2">
           <div className="flex items-center gap-2">
             {needsRefill ? (

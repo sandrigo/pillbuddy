@@ -60,12 +60,19 @@ export const useMedications = () => {
       createdAt: new Date(),
     };
     
-    // Search for image if PZN is provided
+    // Lade Medikamenteninfo wenn PZN vorhanden ist
     if (data.pzn) {
-      const { searchMedicationImage } = await import('@/utils/medicationImageSearch');
-      const imageUrl = await searchMedicationImage(data.pzn);
-      if (imageUrl) {
-        newMedication.imageUrl = imageUrl;
+      const { getMedicationInfo } = await import('@/utils/medicationDatabase');
+      const info = await getMedicationInfo(data.pzn);
+      if (info) {
+        newMedication.imageUrl = info.imageUrl;
+        newMedication.description = info.description;
+        newMedication.activeIngredient = info.activeIngredient;
+        newMedication.indication = info.indication;
+        // Falls kein Name eingegeben wurde, verwende den aus der Datenbank
+        if (!newMedication.name.trim()) {
+          newMedication.name = info.name;
+        }
       }
     }
     
@@ -77,12 +84,15 @@ export const useMedications = () => {
   };
 
   const updateMedication = async (id: string, updates: Partial<Medication>) => {
-    // Search for image if PZN is being updated
+    // Lade Medikamenteninfo wenn PZN aktualisiert wird
     if (updates.pzn) {
-      const { searchMedicationImage } = await import('@/utils/medicationImageSearch');
-      const imageUrl = await searchMedicationImage(updates.pzn);
-      if (imageUrl) {
-        updates.imageUrl = imageUrl;
+      const { getMedicationInfo } = await import('@/utils/medicationDatabase');
+      const info = await getMedicationInfo(updates.pzn);
+      if (info) {
+        updates.imageUrl = info.imageUrl;
+        updates.description = info.description;
+        updates.activeIngredient = info.activeIngredient;
+        updates.indication = info.indication;
       }
     }
     
