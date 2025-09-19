@@ -3,7 +3,6 @@ export interface MedicationInfo {
   activeIngredient: string;
   indication: string;
   description: string;
-  imageUrl?: string;
 }
 
 // Mock database für Demonstration - in der Realität würde man eine echte Pharma-API verwenden
@@ -12,29 +11,25 @@ const medicationDatabase: Record<string, MedicationInfo> = {
     name: 'L-Thyroxin Henning 100',
     activeIngredient: 'Levothyroxin-Natrium',
     indication: 'Schilddrüsenunterfunktion',
-    description: 'Schilddrüsenhormon zur Behandlung von Hypothyreose und Schilddrüsenvergrößerung.',
-    imageUrl: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=150&h=150&fit=crop'
+    description: 'Schilddrüsenhormon zur Behandlung von Hypothyreose und Schilddrüsenvergrößerung.'
   },
   '00265043': {
     name: 'Ibuprofen AL 400',
     activeIngredient: 'Ibuprofen',
     indication: 'Schmerzen und Entzündungen',
-    description: 'Nicht-steroidales Antirheumatikum zur Behandlung von Schmerzen, Fieber und Entzündungen.',
-    imageUrl: 'https://images.unsplash.com/photo-1550572017-edd951aa8dc2?w=150&h=150&fit=crop'
+    description: 'Nicht-steroidales Antirheumatikum zur Behandlung von Schmerzen, Fieber und Entzündungen.'
   },
   '11160671': {
     name: 'Metformin STADA 1000mg',
     activeIngredient: 'Metformin',
     indication: 'Diabetes mellitus Typ 2',
-    description: 'Antidiabetikum zur Senkung des Blutzuckerspiegels bei Typ-2-Diabetes.',
-    imageUrl: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=150&h=150&fit=crop'
+    description: 'Antidiabetikum zur Senkung des Blutzuckerspiegels bei Typ-2-Diabetes.'
   },
   '09999999': {
     name: 'Aspirin protect 100mg',
     activeIngredient: 'Acetylsalicylsäure',
     indication: 'Thromboseprophylaxe',
-    description: 'Niedrigdosierte ASS zur Vorbeugung von Herzinfarkt und Schlaganfall.',
-    imageUrl: 'https://images.unsplash.com/photo-1471864190281-a93a3070b6de?w=150&h=150&fit=crop'
+    description: 'Niedrigdosierte ASS zur Vorbeugung von Herzinfarkt und Schlaganfall.'
   }
 };
 
@@ -58,17 +53,11 @@ export const getMedicationInfo = async (pzn: string): Promise<MedicationInfo | n
       name: 'Unbekanntes Medikament',
       activeIngredient: 'Nicht verfügbar',
       indication: 'Keine Information verfügbar',
-      description: `Medikament mit PZN ${pzn}. Weitere Informationen können beim Arzt oder Apotheker erfragt werden.`,
-      imageUrl: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=150&h=150&fit=crop'
+      description: `Medikament mit PZN ${pzn}. Weitere Informationen können beim Arzt oder Apotheker erfragt werden.`
     };
     
   } catch (error) {
     console.error('Fehler beim Laden der Medikamenteninfo:', error);
     return null;
   }
-};
-
-export const searchMedicationImage = async (pzn: string): Promise<string | null> => {
-  const info = await getMedicationInfo(pzn);
-  return info?.imageUrl || null;
 };

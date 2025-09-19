@@ -2,7 +2,6 @@ export interface Medication {
   id: string;
   name: string;
   pzn?: string;
-  imageUrl?: string;
   description?: string;
   activeIngredient?: string;
   indication?: string;

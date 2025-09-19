@@ -82,27 +82,9 @@ export const MedicationCard = ({ medication, daysRemaining, needsRefill, onDelet
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2">
-            {medication.imageUrl ? (
-              <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                <img 
-                  src={medication.imageUrl} 
-                  alt={`${medication.name} Packung`}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
-                    target.nextElementSibling?.classList.remove('hidden');
-                  }}
-                />
-                <div className="hidden w-full h-full bg-primary/10 rounded-lg flex items-center justify-center">
-                  <Pill className="h-4 w-4 text-primary" />
-                </div>
-              </div>
-            ) : (
-              <div className="p-2 rounded-lg bg-primary/10">
-                <Pill className="h-4 w-4 text-primary" />
-              </div>
-            )}
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Pill className="h-4 w-4 text-primary" />
+            </div>
             <div>
               <CardTitle className="text-lg font-semibold">{medication.name}</CardTitle>
               {medication.pzn && (

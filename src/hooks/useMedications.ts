@@ -65,7 +65,6 @@ export const useMedications = () => {
       const { getMedicationInfo } = await import('@/utils/medicationDatabase');
       const info = await getMedicationInfo(data.pzn);
       if (info) {
-        newMedication.imageUrl = info.imageUrl;
         newMedication.description = info.description;
         newMedication.activeIngredient = info.activeIngredient;
         newMedication.indication = info.indication;
@@ -89,7 +88,6 @@ export const useMedications = () => {
       const { getMedicationInfo } = await import('@/utils/medicationDatabase');
       const info = await getMedicationInfo(updates.pzn);
       if (info) {
-        updates.imageUrl = info.imageUrl;
         updates.description = info.description;
         updates.activeIngredient = info.activeIngredient;
         updates.indication = info.indication;
