@@ -3,9 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Medication, MedicationFormData } from '@/types/medication';
-import { Pill, Save, X } from 'lucide-react';
+import { Medication } from '@/types/medication';
+import { Pill, Save, X, Settings, StickyNote } from 'lucide-react';
 
 interface MedicationEditFormProps {
   medication: Medication;
@@ -14,13 +16,18 @@ interface MedicationEditFormProps {
 }
 
 export const MedicationEditForm = ({ medication, onSubmit, onCancel }: MedicationEditFormProps) => {
-  const [formData, setFormData] = useState<MedicationFormData>({
+  const [formData, setFormData] = useState({
     name: medication.name,
     pzn: medication.pzn || '',
     currentAmount: medication.currentAmount,
     dailyDosage: medication.dailyDosage,
     interval: medication.interval,
     reminderThresholdDays: medication.reminderThresholdDays,
+    description: medication.description || '',
+    activeIngredient: medication.activeIngredient || '',
+    indication: medication.indication || '',
+    manualInfoOverride: medication.manualInfoOverride || false,
+    personalNotes: medication.personalNotes || '',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -56,14 +63,87 @@ export const MedicationEditForm = ({ medication, onSubmit, onCancel }: Medicatio
             <Label htmlFor="pzn">PZN (optional)</Label>
             <Input
               id="pzn"
-              value={formData.pzn || ''}
+              value={formData.pzn}
               onChange={(e) => setFormData({ ...formData, pzn: e.target.value })}
               placeholder="z.B. 12345678"
               maxLength={8}
             />
-            <p className="text-xs text-muted-foreground">
-              Pharmazentralnummer für automatische Bildersuche
-            </p>
+          </div>
+
+          {/* Schalter für manuelle Bearbeitung */}
+          <div className="flex items-center space-x-2 p-3 bg-muted/30 rounded-lg">
+            <Settings className="h-4 w-4 text-muted-foreground" />
+            <div className="flex-1">
+              <Label htmlFor="manual-override" className="text-sm font-medium">
+                Medikamenteninfo manuell bearbeiten
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Deaktiviert die automatische PZN-Suche
+              </p>
+            </div>
+            <Switch
+              id="manual-override"
+              checked={formData.manualInfoOverride}
+              onCheckedChange={(checked) => setFormData({ ...formData, manualInfoOverride: checked })}
+            />
+          </div>
+
+          {/* Medikamenteninfo-Felder (nur wenn manuell aktiviert) */}
+          {formData.manualInfoOverride && (
+            <div className="space-y-3 p-3 border rounded-lg bg-card">
+              <div className="flex items-center gap-2 mb-2">
+                <Settings className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium text-primary">Medikamenteninfo</span>
+              </div>
+              
+              <div>
+                <Label htmlFor="activeIngredient">Wirkstoff</Label>
+                <Input
+                  id="activeIngredient"
+                  value={formData.activeIngredient}
+                  onChange={(e) => setFormData({ ...formData, activeIngredient: e.target.value })}
+                  placeholder="z.B. Ibuprofen"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="indication">Anwendungsgebiet</Label>
+                <Input
+                  id="indication"
+                  value={formData.indication}
+                  onChange={(e) => setFormData({ ...formData, indication: e.target.value })}
+                  placeholder="z.B. Schmerzen und Entzündungen"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="description">Beschreibung</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Detaillierte Beschreibung des Medikaments..."
+                  rows={3}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Persönliche Notizen */}
+          <div className="space-y-2 p-3 border rounded-lg bg-card">
+            <div className="flex items-center gap-2">
+              <StickyNote className="h-4 w-4 text-primary" />
+              <Label htmlFor="personalNotes" className="text-sm font-medium text-primary">
+                Persönliche Notizen
+              </Label>
+            </div>
+            <Textarea
+              id="personalNotes"
+              value={formData.personalNotes}
+              onChange={(e) => setFormData({ ...formData, personalNotes: e.target.value })}
+              placeholder="Ihre persönlichen Notizen zu diesem Medikament..."
+              rows={2}
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">

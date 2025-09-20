@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Trash2, Pill, Calendar, AlertCircle, Edit3, Check, X, Settings, CalendarDays, Image } from 'lucide-react';
+import { Trash2, Pill, Calendar, AlertCircle, Edit3, Check, X, Settings, CalendarDays, StickyNote } from 'lucide-react';
 import { MedicationEditForm } from './MedicationEditForm';
 import { Medication } from '@/types/medication';
 
@@ -193,6 +193,17 @@ export const MedicationCard = ({ medication, daysRemaining, needsRefill, onDelet
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {/* Persönliche Notizen */}
+        {medication.personalNotes && (
+          <div className="mt-4 p-3 bg-accent/10 rounded-lg border border-accent/20">
+            <h4 className="text-sm font-semibold mb-2 text-accent-foreground flex items-center gap-2">
+              <StickyNote className="h-3 w-3" />
+              Persönliche Notizen
+            </h4>
+            <p className="text-xs text-accent-foreground">{medication.personalNotes}</p>
           </div>
         )}
         
