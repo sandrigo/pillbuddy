@@ -167,12 +167,6 @@ export const MedicationCard = ({ medication, daysRemaining, needsRefill, onDelet
         </div>
         
         <div className="flex items-center gap-2 text-sm">
-          <CalendarDays className="h-4 w-4 text-muted-foreground" />
-          <span className="text-muted-foreground">Leer am:</span>
-          <span className="font-medium">{getZeroDate()}</span>
-        </div>
-        
-        <div className="flex items-center gap-2 text-sm">
           <Calendar className="h-4 w-4 text-muted-foreground" />
           <span className="text-muted-foreground">Einnahme:</span>
           <span className="font-medium">{getIntervalText(medication.interval)}</span>
@@ -203,15 +197,21 @@ export const MedicationCard = ({ medication, daysRemaining, needsRefill, onDelet
         )}
         
         <div className="flex items-center justify-between pt-2">
-          <div className="flex items-center gap-2">
-            {needsRefill ? (
-              <AlertCircle className="h-4 w-4 text-warning" />
-            ) : (
-              <Calendar className="h-4 w-4 text-success" />
-            )}
-            <span className="text-sm font-medium">
-              {daysRemaining} Tag{daysRemaining !== 1 ? 'e' : ''} verbleibend
-            </span>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              {needsRefill ? (
+                <AlertCircle className="h-4 w-4 text-warning" />
+              ) : (
+                <Calendar className="h-4 w-4 text-success" />
+              )}
+              <span className="text-sm font-medium">
+                {daysRemaining} Tag{daysRemaining !== 1 ? 'e' : ''} verbleibend
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span>Leer am:</span>
+              <span className="font-medium">{getZeroDate()}</span>
+            </div>
           </div>
           
           {needsRefill && (
