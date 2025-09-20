@@ -44,58 +44,82 @@ export const getMedicationInfo = async (pzn: string): Promise<MedicationInfo | n
       return mockInfo;
     }
     
-    // Suche im Internet nach PZN-Informationen
-    const searchQuery = `PZN ${pzn} Medikament Wirkstoff Anwendung site:gelbe-liste.de OR site:aponet.de OR site:apotheken-umschau.de`;
-    
-    const response = await fetch('https://api.perplexity.ai/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${getPerplexityApiKey()}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'llama-3.1-sonar-small-128k-online',
-        messages: [
-          {
-            role: 'system',
-            content: 'Du bist ein Medikamenten-Experte. Gib IMMER eine strukturierte Antwort im JSON-Format zurück mit den Feldern: name, activeIngredient, indication, description. Antworte nur mit dem JSON-Objekt, ohne zusätzlichen Text.'
-          },
-          {
-            role: 'user',
-            content: `Finde Informationen zu PZN ${pzn}. Gib mir Name, Wirkstoff, Anwendungsgebiet und Beschreibung zurück.`
-          }
-        ],
-        temperature: 0.2,
-        top_p: 0.9,
-        max_tokens: 500,
-        return_images: false,
-        return_related_questions: false,
-        search_domain_filter: ['gelbe-liste.de', 'aponet.de', 'apotheken-umschau.de'],
-        search_recency_filter: 'month',
-        frequency_penalty: 1,
-        presence_penalty: 0
-      }),
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      const content = data.choices[0]?.message?.content;
+    // Versuche Informationen von öffentlichen Quellen zu laden
+    try {
+      // Verwende CORS-Proxy für Web-Scraping von gelbe-liste.de
+      const proxyUrl = 'https://api.allorigins.win/get?url=';
+      const targetUrl = `https://www.gelbe-liste.de/suche?q=${encodeURIComponent(pzn)}`;
       
-      if (content) {
-        try {
-          const parsed = JSON.parse(content);
-          if (parsed.name && parsed.activeIngredient) {
-            return {
-              name: parsed.name,
-              activeIngredient: parsed.activeIngredient,
-              indication: parsed.indication || 'Keine Information verfügbar',
-              description: parsed.description || `Medikament mit PZN ${pzn}`
-            };
+      const response = await fetch(proxyUrl + encodeURIComponent(targetUrl));
+      const data = await response.json();
+      
+      if (data.contents) {
+        const htmlContent = data.contents;
+        
+        // Einfache HTML-Parsing für Medikamentenname
+        const nameMatch = htmlContent.match(/<h1[^>]*>([^<]+)<\/h1>/i) || 
+                         htmlContent.match(/<title>([^<]+)\s*-\s*gelbe liste/i);
+        
+        const descriptionMatch = htmlContent.match(/<meta[^>]*name="description"[^>]*content="([^"]+)"/i);
+        
+        if (nameMatch && nameMatch[1]) {
+          let name = nameMatch[1].trim();
+          let activeIngredient = 'Nicht verfügbar';
+          let indication = 'Siehe Packungsbeilage';
+          let description = descriptionMatch ? descriptionMatch[1] : `Medikament mit PZN ${pzn}`;
+          
+          // Versuche Wirkstoff aus dem Namen zu extrahieren
+          const ingredientMatch = name.match(/\b(Ibuprofen|Paracetamol|Aspirin|ASS|Metformin|Levothyroxin|Thyroxin|Amoxicillin|Diclofenac|Omeprazol|Pantoprazol|Bisoprolol|Ramipril|Simvastatin|Atorvastatin)\b/i);
+          if (ingredientMatch) {
+            activeIngredient = ingredientMatch[1];
           }
-        } catch (parseError) {
-          console.error('Fehler beim Parsen der API-Antwort:', parseError);
+          
+          return {
+            name: name,
+            activeIngredient: activeIngredient,
+            indication: indication,
+            description: description
+          };
         }
       }
+    } catch (webError) {
+      console.log('Web-Scraping fehlgeschlagen, verwende Fallback');
+    }
+    
+    // Erweiterte Mock-Datenbank als Fallback
+    const extendedDatabase: Record<string, MedicationInfo> = {
+      ...medicationDatabase,
+      // Häufige Medikamente hinzufügen
+      'ibuprofen': {
+        name: 'Ibuprofen 400mg',
+        activeIngredient: 'Ibuprofen',
+        indication: 'Schmerzen und Entzündungen',
+        description: 'Nicht-steroidales Antirheumatikum zur Behandlung von Schmerzen, Fieber und Entzündungen.'
+      },
+      'paracetamol': {
+        name: 'Paracetamol 500mg',
+        activeIngredient: 'Paracetamol',
+        indication: 'Schmerzen und Fieber',
+        description: 'Schmerzstillender und fiebersenkender Wirkstoff.'
+      },
+      'aspirin': {
+        name: 'Aspirin 500mg',
+        activeIngredient: 'Acetylsalicylsäure',
+        indication: 'Schmerzen, Fieber, Entzündungen',
+        description: 'Schmerzstillend, fiebersenkend und entzündungshemmend.'
+      }
+    };
+    
+    // Suche nach ähnlichen Namen in der erweiterten Datenbank
+    const searchTerm = cleanPzn.toLowerCase();
+    const similarMatch = Object.entries(extendedDatabase).find(([key, value]) => 
+      key.toLowerCase().includes(searchTerm) || 
+      value.name.toLowerCase().includes(searchTerm) ||
+      searchTerm.includes(key.toLowerCase())
+    );
+    
+    if (similarMatch) {
+      return similarMatch[1];
     }
     
     // Fallback für unbekannte PZN
@@ -117,15 +141,4 @@ export const getMedicationInfo = async (pzn: string): Promise<MedicationInfo | n
       description: `Medikament mit PZN ${pzn}. Weitere Informationen können beim Arzt oder Apotheker erfragt werden.`
     };
   }
-};
-
-// Hilfsfunktion für API-Key
-const getPerplexityApiKey = (): string => {
-  // In einer echten Anwendung sollte dieser Key aus den Umgebungsvariablen kommen
-  // Für Demo-Zwecke verwenden wir einen Platzhalter
-  const apiKey = localStorage.getItem('perplexity_api_key');
-  if (!apiKey) {
-    throw new Error('Perplexity API Key nicht gefunden. Bitte in den Einstellungen hinterlegen.');
-  }
-  return apiKey;
 };

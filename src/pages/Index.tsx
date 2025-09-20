@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Heart, Plus, AlertCircle, Mail, Settings, Download, Upload } from 'lucide-react';
 import { Medication } from '@/types/medication';
-import { PerplexityApiKeyInput } from '@/components/PerplexityApiKeyInput';
 import pillbuddyLogo from '@/assets/pillbuddy-logo.png';
 
 const Index = () => {
@@ -227,9 +226,6 @@ const Index = () => {
           onChange={handleImport}
           style={{ display: 'none' }}
         />
-
-        {/* Perplexity API Key Input */}
-        <PerplexityApiKeyInput />
 
         {/* Email Notification Settings */}
         {showEmailSettings && (
