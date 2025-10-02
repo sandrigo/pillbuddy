@@ -1,26 +1,24 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useMedications } from '@/hooks/useMedications';
 import { useEmailNotifications } from '@/hooks/useEmailNotifications';
 import { MedicationCard } from '@/components/MedicationCard';
 import { MedicationForm } from '@/components/MedicationForm';
-import { EmailNotificationSettings } from '@/components/EmailNotificationSettings';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Heart, Plus, AlertCircle, Mail, Settings as SettingsIcon, Download, Upload } from 'lucide-react';
+import { Plus, AlertCircle, Settings as SettingsIcon, Heart } from 'lucide-react';
 import { Medication } from '@/types/medication';
 import pillbuddyLogo from '@/assets/pillbuddy-logo.png';
 import { InstallPWA } from '@/components/InstallPWA';
 import { OnlineStatus } from '@/components/OnlineStatus';
+import { BottomNav } from '@/components/BottomNav';
 import { checkMedicationLevels } from '@/utils/notifications';
 import { Link } from 'react-router-dom';
 
 const Index = () => {
   const [showForm, setShowForm] = useState(false);
-  const [showEmailSettings, setShowEmailSettings] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const { medications, addMedication, deleteMedication, updateMedication, updateCurrentAmount, getDaysRemaining, needsRefill, exportMedications, importMedications } = useMedications();
+  const { medications, addMedication, deleteMedication, updateMedication, updateCurrentAmount, getDaysRemaining, needsRefill } = useMedications();
   const { checkAndSendNotifications } = useEmailNotifications();
   const { toast } = useToast();
 
@@ -60,46 +58,6 @@ const Index = () => {
     });
   };
 
-  const handleExport = () => {
-    exportMedications();
-    toast({
-      title: "Export erfolgreich",
-      description: "Medikamentenliste wurde heruntergeladen.",
-    });
-  };
-
-  const handleImportClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const content = e.target?.result as string;
-        const success = importMedications(content);
-        if (success) {
-          toast({
-            title: "Import erfolgreich",
-            description: "Medikamentenliste wurde importiert.",
-          });
-        } else {
-          toast({
-            title: "Import fehlgeschlagen",
-            description: "Die Datei konnte nicht gelesen werden.",
-            variant: "destructive",
-          });
-        }
-      };
-      reader.readAsText(file);
-    }
-    // Reset input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
   const filteredMedications = medications.filter(med => 
     med.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -120,35 +78,26 @@ const Index = () => {
   }, [medications.length]);
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-gradient-to-br from-primary/20 via-accent/10 to-primary/10 border-b border-border/50">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex flex-col items-center text-center space-y-4">
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-4 flex-1 justify-center">
-                <img 
-                  src={pillbuddyLogo} 
-                  alt="PillBuddy Logo" 
-                  className="w-16 h-16 rounded-full shadow-gentle"
-                />
-                <div>
-                  <h1 className="text-3xl font-bold text-foreground">PillBuddy</h1>
-                  <p className="text-muted-foreground">Ihr digitaler Medikamenten-Assistent</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <OnlineStatus />
-                <Link to="/settings">
-                  <Button variant="ghost" size="icon">
-                    <SettingsIcon className="h-5 w-5" />
-                  </Button>
-                </Link>
-              </div>
+    <div className="min-h-screen bg-background pb-20">
+      {/* Header - Kompakter */}
+      <header className="bg-gradient-to-br from-primary/20 via-accent/10 to-primary/10 border-b border-border/50 sticky top-0 z-40">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <img 
+                src={pillbuddyLogo} 
+                alt="PillBuddy Logo" 
+                className="w-10 h-10 rounded-full shadow-gentle"
+              />
+              <h1 className="text-xl font-bold text-foreground">PillBuddy</h1>
             </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Heart className="h-4 w-4 text-primary" />
-              <span>Gesund bleiben leicht gemacht</span>
+            <div className="flex items-center gap-2">
+              <OnlineStatus />
+              <Link to="/settings">
+                <Button variant="ghost" size="icon" className="min-w-[44px] min-h-[44px]">
+                  <SettingsIcon className="h-5 w-5" />
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
@@ -202,56 +151,14 @@ const Index = () => {
         {/* Add Medication Button */}
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-semibold">Meine Medikamente</h2>
-          <div className="flex gap-2 flex-wrap">
-            <Button
-              variant="outline"
-              onClick={handleExport}
-              size="sm"
-              disabled={medications.length === 0}
-              className="flex items-center gap-2"
-            >
-              <Download className="h-4 w-4" />
-              Export
-            </Button>
-            <Button
-              variant="outline"
-              onClick={handleImportClick}
-              size="sm"
-              className="flex items-center gap-2"
-            >
-              <Upload className="h-4 w-4" />
-              Import
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setShowEmailSettings(!showEmailSettings)}
-              className="flex items-center gap-2 border-primary/30 text-primary hover:bg-primary/5"
-            >
-              <Mail className="h-4 w-4" />
-              {showEmailSettings ? 'Schließen' : 'Email-Setup'}
-            </Button>
-            <Button
-              onClick={() => setShowForm(!showForm)}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-gentle"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              {showForm ? 'Abbrechen' : 'Hinzufügen'}
-            </Button>
-          </div>
+          <Button
+            onClick={() => setShowForm(!showForm)}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-gentle min-w-[44px] min-h-[44px]"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            {showForm ? 'Abbrechen' : 'Hinzufügen'}
+          </Button>
         </div>
-
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".json"
-          onChange={handleImport}
-          style={{ display: 'none' }}
-        />
-
-        {/* Email Notification Settings */}
-        {showEmailSettings && (
-          <EmailNotificationSettings />
-        )}
 
         {/* Add Medication Form */}
         {showForm && (
@@ -299,6 +206,9 @@ const Index = () => {
 
       {/* PWA Install Prompt */}
       <InstallPWA />
+
+      {/* Bottom Navigation */}
+      <BottomNav onAddClick={() => setShowForm(true)} />
     </div>
   );
 };
