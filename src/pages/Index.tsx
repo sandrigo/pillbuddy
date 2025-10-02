@@ -7,9 +7,13 @@ import { EmailNotificationSettings } from '@/components/EmailNotificationSetting
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Heart, Plus, AlertCircle, Mail, Settings, Download, Upload } from 'lucide-react';
+import { Heart, Plus, AlertCircle, Mail, Settings as SettingsIcon, Download, Upload } from 'lucide-react';
 import { Medication } from '@/types/medication';
 import pillbuddyLogo from '@/assets/pillbuddy-logo.png';
+import { InstallPWA } from '@/components/InstallPWA';
+import { OnlineStatus } from '@/components/OnlineStatus';
+import { checkMedicationLevels } from '@/utils/notifications';
+import { Link } from 'react-router-dom';
 
 const Index = () => {
   const [showForm, setShowForm] = useState(false);
@@ -108,21 +112,38 @@ const Index = () => {
     }
   }, [medications.length]); // Only trigger on medication count change, not on every update
 
+  // Auto-check for PWA notifications
+  useEffect(() => {
+    if (medications.length > 0) {
+      checkMedicationLevels(medications, getDaysRemaining);
+    }
+  }, [medications.length]);
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="bg-gradient-to-br from-primary/20 via-accent/10 to-primary/10 border-b border-border/50">
         <div className="container mx-auto px-4 py-8">
           <div className="flex flex-col items-center text-center space-y-4">
-            <div className="flex items-center gap-4">
-              <img 
-                src={pillbuddyLogo} 
-                alt="PillBuddy Logo" 
-                className="w-16 h-16 rounded-full shadow-gentle"
-              />
-              <div>
-                <h1 className="text-3xl font-bold text-foreground">PillBuddy</h1>
-                <p className="text-muted-foreground">Ihr digitaler Medikamenten-Assistent</p>
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-center gap-4 flex-1 justify-center">
+                <img 
+                  src={pillbuddyLogo} 
+                  alt="PillBuddy Logo" 
+                  className="w-16 h-16 rounded-full shadow-gentle"
+                />
+                <div>
+                  <h1 className="text-3xl font-bold text-foreground">PillBuddy</h1>
+                  <p className="text-muted-foreground">Ihr digitaler Medikamenten-Assistent</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <OnlineStatus />
+                <Link to="/settings">
+                  <Button variant="ghost" size="icon">
+                    <SettingsIcon className="h-5 w-5" />
+                  </Button>
+                </Link>
               </div>
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -275,6 +296,9 @@ const Index = () => {
           </div>
         )}
       </main>
+
+      {/* PWA Install Prompt */}
+      <InstallPWA />
     </div>
   );
 };

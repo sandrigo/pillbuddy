@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PillBuddy - Offline</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #2D3748 0%, #1a202c 100%);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            text-align: center;
+            max-width: 500px;
+        }
+        
+        .icon {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 30px;
+            background: #4FD1C5;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+        }
+        
+        h1 {
+            font-size: 32px;
+            margin-bottom: 15px;
+            color: #4FD1C5;
+        }
+        
+        p {
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            color: #cbd5e0;
+        }
+        
+        .feature-list {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 30px;
+            text-align: left;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        
+        .feature-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .check {
+            color: #4FD1C5;
+            font-size: 20px;
+        }
+        
+        button {
+            background: #4FD1C5;
+            color: #2D3748;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: transform 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">💊</div>
+        <h1>Sie sind offline</h1>
+        <p>
+            Keine Internetverbindung verfügbar. Aber keine Sorge - PillBuddy funktioniert auch offline!
+        </p>
+        
+        <div class="feature-list">
+            <div class="feature-item">
+                <span class="check">✓</span>
+                <span>Alle Ihre Medikamentendaten sind gespeichert</span>
+            </div>
+            <div class="feature-item">
+                <span class="check">✓</span>
+                <span>Sie können Vorräte aktualisieren</span>
+            </div>
+            <div class="feature-item">
+                <span class="check">✓</span>
+                <span>Medikamente hinzufügen und verwalten</span>
+            </div>
+            <div class="feature-item">
+                <span class="check">✓</span>
+                <span>Änderungen werden synchronisiert sobald Sie online sind</span>
+            </div>
+        </div>
+        
+        <button onclick="window.location.reload()">
+            Erneut versuchen
+        </button>
+    </div>
+</body>
+</html>

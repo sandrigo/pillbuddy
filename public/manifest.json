@@ -1,0 +1,44 @@
+{
+  "name": "PillBuddy - Medikamenten-Assistent",
+  "short_name": "PillBuddy",
+  "description": "Ihr digitaler Medikamenten-Assistent - Nie wieder Medikamente vergessen",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#2D3748",
+  "theme_color": "#4FD1C5",
+  "orientation": "portrait",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/badge-72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "monochrome"
+    }
+  ],
+  "categories": ["health", "medical", "productivity"],
+  "shortcuts": [
+    {
+      "name": "Medikamente",
+      "url": "/",
+      "description": "Meine Medikamente anzeigen"
+    },
+    {
+      "name": "Hinzufügen",
+      "url": "/?add=true",
+      "description": "Neues Medikament hinzufügen"
+    }
+  ]
+}
