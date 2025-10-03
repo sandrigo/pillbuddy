@@ -60,21 +60,6 @@ export const useMedications = () => {
       createdAt: new Date(),
     };
     
-    // Lade Medikamenteninfo wenn PZN vorhanden ist (standardmäßig aktiviert)
-    if (data.pzn) {
-      const { getMedicationInfo } = await import('@/utils/medicationDatabase');
-      const info = await getMedicationInfo(data.pzn);
-      if (info) {
-        newMedication.description = info.description;
-        newMedication.activeIngredient = info.activeIngredient;
-        newMedication.indication = info.indication;
-        // Falls kein Name eingegeben wurde, verwende den aus der Datenbank
-        if (!newMedication.name.trim()) {
-          newMedication.name = info.name;
-        }
-      }
-    }
-    
     saveMedications([...medications, newMedication]);
   };
 
@@ -83,20 +68,6 @@ export const useMedications = () => {
   };
 
   const updateMedication = async (id: string, updates: Partial<Medication>) => {
-    // Lade Medikamenteninfo wenn PZN aktualisiert wird und nicht manuell überschrieben
-    if (updates.pzn && !updates.manualInfoOverride) {
-      const currentMed = medications.find(m => m.id === id);
-      if (!currentMed?.manualInfoOverride) {
-        const { getMedicationInfo } = await import('@/utils/medicationDatabase');
-        const info = await getMedicationInfo(updates.pzn);
-        if (info) {
-          updates.description = info.description;
-          updates.activeIngredient = info.activeIngredient;
-          updates.indication = info.indication;
-        }
-      }
-    }
-    
     saveMedications(medications.map(med => 
       med.id === id ? { ...med, ...updates } : med
     ));
