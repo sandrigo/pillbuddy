@@ -4,8 +4,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Pill } from 'lucide-react';
+import { Plus, Pill, Search } from 'lucide-react';
 import { MedicationFormData, Medication } from '@/types/medication';
+import { getMedicationInfo } from '@/utils/medicationDatabase';
 
 interface MedicationFormProps {
   onSubmit: (data: MedicationFormData) => void;
@@ -20,6 +21,25 @@ export const MedicationForm = ({ onSubmit }: MedicationFormProps) => {
     interval: 'daily',
     reminderThresholdDays: 14
   });
+  
+  const [isLoadingPzn, setIsLoadingPzn] = useState(false);
+
+  
+  const handlePznLookup = async () => {
+    if (!formData.pzn) return;
+    
+    setIsLoadingPzn(true);
+    try {
+      const info = await getMedicationInfo(formData.pzn);
+      if (info && !formData.name.trim()) {
+        setFormData(prev => ({ ...prev, name: info.name }));
+      }
+    } catch (error) {
+      console.error('Fehler beim Laden der PZN-Info:', error);
+    } finally {
+      setIsLoadingPzn(false);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,14 +91,33 @@ export const MedicationForm = ({ onSubmit }: MedicationFormProps) => {
           
           <div className="space-y-2">
             <Label htmlFor="pzn">PZN (optional)</Label>
-            <Input
-              id="pzn"
-              type="text"
-              value={formData.pzn || ''}
-              onChange={(e) => setFormData({ ...formData, pzn: e.target.value })}
-              placeholder="z.B. 02532876"
-              maxLength={8}
-            />
+            <div className="flex gap-2">
+              <Input
+                id="pzn"
+                type="text"
+                value={formData.pzn || ''}
+                onChange={(e) => setFormData({ ...formData, pzn: e.target.value })}
+                placeholder="z.B. 02532876"
+                maxLength={8}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handlePznLookup}
+                disabled={!formData.pzn || isLoadingPzn}
+                className="shrink-0"
+              >
+                {isLoadingPzn ? (
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                ) : (
+                  <Search className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Pharmazentralnummer für automatische Medikamenteninfo
+            </p>
           </div>
           
           <div className="grid grid-cols-2 gap-4">

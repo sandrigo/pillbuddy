@@ -61,8 +61,8 @@ const About = () => {
                 <div>
                   <strong className="text-foreground">Entwickelt von:</strong> Sandrigo
                 </div>
-                <div className="flex flex-wrap gap-2 items-center">
-                  🌐{' '}
+                <div>
+                  <strong className="text-foreground">Website:</strong>{' '}
                   <a 
                     href="https://wagehals.media" 
                     target="_blank" 
@@ -71,23 +71,16 @@ const About = () => {
                   >
                     wagehals.media
                   </a>
-                  {' • '}
-                  📱{' '}
+                </div>
+                <div>
+                  <strong className="text-foreground">Instagram:</strong>{' '}
                   <a 
-                    href="https://instagram.com/sandrigo87/" 
+                    href="https://instagram.com/sandrigo87" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="text-primary hover:underline"
                   >
                     @sandrigo87
-                  </a>
-                  {' • '}
-                  📧{' '}
-                  <a 
-                    href="mailto:hallo@wagehals.media"
-                    className="text-primary hover:underline"
-                  >
-                    hallo@wagehals.media
                   </a>
                 </div>
               </div>
@@ -99,15 +92,7 @@ const About = () => {
               <div className="grid gap-2 text-sm">
                 <div className="flex items-center gap-2">
                   <span className="text-primary">🚀</span>
-                  <a 
-                    href="https://lovable.dev/invite/9d5b0a8f-892a-4415-a972-12f154a9d4f5" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-primary hover:underline"
-                  >
-                    Lovable
-                  </a>
-                  <span className="text-muted-foreground">- Development Platform</span>
+                  <span>Lovable (Development Platform)</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-primary">🤖</span>
@@ -132,7 +117,7 @@ const About = () => {
             <div className="pt-6 border-t border-border text-sm text-muted-foreground space-y-2">
               <div className="flex justify-between">
                 <span><strong>Version:</strong> 1.0</span>
-                <span><strong>Letzte Aktualisierung:</strong> Oktober 2025</span>
+                <span><strong>Letzte Aktualisierung:</strong> Oktober 2024</span>
               </div>
             </div>
 
@@ -142,13 +127,7 @@ const About = () => {
                 Vielen Dank, dass du PillBuddy nutzt! 🙏
               </p>
               <p className="text-sm text-muted-foreground mt-2">
-                Schreib mir gern bei Fragen oder Feedback:{' '}
-                <a 
-                  href="mailto:hallo@wagehals.media"
-                  className="text-primary hover:underline"
-                >
-                  hallo@wagehals.media
-                </a>
+                Bei Fragen oder Feedback kannst du mich gerne über meine Website oder Instagram kontaktieren.
               </p>
             </div>
           </CardContent>

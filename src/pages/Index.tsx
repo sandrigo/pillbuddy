@@ -6,7 +6,7 @@ import { MedicationForm } from '@/components/MedicationForm';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, AlertCircle, Heart, Info } from 'lucide-react';
+import { Plus, AlertCircle, Settings as SettingsIcon, Heart } from 'lucide-react';
 import { Medication } from '@/types/medication';
 import pillbuddyLogo from '@/assets/pillbuddy-logo.png';
 import { InstallPWA } from '@/components/InstallPWA';
@@ -91,7 +91,14 @@ const Index = () => {
               />
               <h1 className="text-xl font-bold text-foreground">PillBuddy</h1>
             </div>
-            <OnlineStatus />
+            <div className="flex items-center gap-2">
+              <OnlineStatus />
+              <Link to="/settings">
+                <Button variant="ghost" size="icon" className="min-w-[44px] min-h-[44px]">
+                  <SettingsIcon className="h-5 w-5" />
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </header>
@@ -202,16 +209,6 @@ const Index = () => {
 
       {/* Bottom Navigation */}
       <BottomNav onAddClick={() => setShowForm(true)} />
-
-      {/* Floating About Button */}
-      <Link to="/about">
-        <Button
-          size="icon"
-          className="fixed bottom-20 right-5 z-50 h-12 w-12 rounded-full shadow-lg bg-primary hover:bg-primary/90"
-        >
-          <Info className="h-5 w-5" />
-        </Button>
-      </Link>
     </div>
   );
 };

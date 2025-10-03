@@ -1,4 +1,4 @@
-import { Home, PlusCircle, Settings } from 'lucide-react';
+import { Home, BarChart3, PlusCircle, Settings } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
@@ -12,6 +12,7 @@ export const BottomNav = ({ onAddClick }: BottomNavProps) => {
 
   const navItems = [
     { icon: Home, label: 'Home', path: '/', onClick: undefined },
+    { icon: BarChart3, label: 'Statistik', path: '/stats', onClick: undefined },
     { icon: PlusCircle, label: 'Hinzufügen', path: '/', onClick: onAddClick },
     { icon: Settings, label: 'Settings', path: '/settings', onClick: undefined },
   ];

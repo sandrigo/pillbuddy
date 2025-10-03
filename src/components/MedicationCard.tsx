@@ -1,14 +1,4 @@
 import { useState } from 'react';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -45,7 +35,6 @@ export const MedicationCard = ({ medication, daysRemaining, needsRefill, onDelet
   const [isEditingMedication, setIsEditingMedication] = useState(false);
   const [editAmount, setEditAmount] = useState(medication.currentAmount);
   const [isInfoOpen, setIsInfoOpen] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const handleSaveAmount = () => {
     if (editAmount > 0) {
@@ -135,34 +124,11 @@ export const MedicationCard = ({ medication, daysRemaining, needsRefill, onDelet
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setShowDeleteDialog(true)}
+              onClick={() => onDelete(medication.id)}
               className="text-muted-foreground hover:text-destructive min-w-[44px] min-h-[44px]"
             >
               <Trash2 className="h-4 w-4" />
             </Button>
-
-            <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Medikament wirklich löschen?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Möchten Sie "{medication.name}" wirklich aus Ihrer Liste entfernen? Diese Aktion kann nicht rückgängig gemacht werden.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Abbrechen</AlertDialogCancel>
-                  <AlertDialogAction 
-                    onClick={() => {
-                      onDelete(medication.id);
-                      setShowDeleteDialog(false);
-                    }}
-                    className="bg-destructive hover:bg-destructive/90"
-                  >
-                    Löschen
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
           </div>
         </div>
       </CardHeader>
@@ -170,13 +136,13 @@ export const MedicationCard = ({ medication, daysRemaining, needsRefill, onDelet
       <CardContent className="space-y-4">
         {/* Prominent Days Remaining */}
         <div className="bg-primary/10 rounded-lg p-4 border border-primary/20">
-            <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3">
             <Clock className="h-6 w-6 text-primary" />
             <div className="flex-1">
               <p className="text-2xl font-bold text-foreground">
                 {daysRemaining} Tag{daysRemaining !== 1 ? 'e' : ''}
               </p>
-              <p className="text-sm text-muted-foreground">Vorrat für {daysRemaining} Tag{daysRemaining !== 1 ? 'e' : ''}</p>
+              <p className="text-sm text-muted-foreground">Reicht noch</p>
             </div>
             {needsRefill && (
               <Badge variant="outline" className="border-warning text-warning-foreground">
