@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Medication } from '@/types/medication';
 import emailjs from '@emailjs/browser';
 

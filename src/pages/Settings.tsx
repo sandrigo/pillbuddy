@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -6,10 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { ArrowLeft, Bell, Trash2, TestTube2, Smartphone, Wifi, Download, Upload, Mail, Info } from 'lucide-react';
+import { ArrowLeft, Bell, Trash2, TestTube2, Smartphone, Wifi } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useMedications } from '@/hooks/useMedications';
-import { EmailNotificationSettings } from '@/components/EmailNotificationSettings';
 import {
   getNotificationSettings,
   saveNotificationSettings,
@@ -27,9 +25,6 @@ const Settings = () => {
   );
   const [swStatus, setSwStatus] = useState<'active' | 'installing' | 'waiting' | 'none'>('none');
   const [cacheSize, setCacheSize] = useState<string>('Berechne...');
-  const [showEmailSettings, setShowEmailSettings] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const { medications, exportMedications, importMedications } = useMedications();
 
   useEffect(() => {
     checkServiceWorkerStatus();
@@ -90,35 +85,6 @@ const Settings = () => {
       await Promise.all(cacheNames.map(name => caches.delete(name)));
       toast.success('Cache geleert');
       checkCacheSize();
-    }
-  };
-
-  const handleExport = () => {
-    exportMedications();
-    toast.success('Medikamentenliste wurde heruntergeladen');
-  };
-
-  const handleImportClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const content = e.target?.result as string;
-        const success = importMedications(content);
-        if (success) {
-          toast.success('Medikamentenliste wurde importiert');
-        } else {
-          toast.error('Die Datei konnte nicht gelesen werden');
-        }
-      };
-      reader.readAsText(file);
-    }
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
     }
   };
 
@@ -332,94 +298,6 @@ const Settings = () => {
               <Trash2 className="h-4 w-4 mr-2" />
               Cache leeren
             </Button>
-          </CardContent>
-        </Card>
-
-        {/* Data Management */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Download className="h-5 w-5" />
-              Datenverwaltung
-            </CardTitle>
-            <CardDescription>
-              Medikamentenliste exportieren und importieren
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Button
-              onClick={handleExport}
-              variant="outline"
-              className="w-full"
-              disabled={medications.length === 0}
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Medikamente exportieren
-            </Button>
-            <Button
-              onClick={handleImportClick}
-              variant="outline"
-              className="w-full"
-            >
-              <Upload className="h-4 w-4 mr-2" />
-              Medikamente importieren
-            </Button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".json"
-              onChange={handleImport}
-              style={{ display: 'none' }}
-            />
-          </CardContent>
-        </Card>
-
-        {/* Email Notifications */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Mail className="h-5 w-5" />
-              Email-Benachrichtigungen
-            </CardTitle>
-            <CardDescription>
-              Alternative zu Push-Benachrichtigungen
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button
-              onClick={() => setShowEmailSettings(!showEmailSettings)}
-              variant="outline"
-              className="w-full"
-            >
-              <Mail className="h-4 w-4 mr-2" />
-              {showEmailSettings ? 'Schließen' : 'Email-Setup öffnen'}
-            </Button>
-            {showEmailSettings && (
-              <div className="mt-4">
-                <EmailNotificationSettings />
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* About */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Info className="h-5 w-5" />
-              Über PillBuddy
-            </CardTitle>
-            <CardDescription>
-              Informationen über diese App
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Link to="/about">
-              <Button variant="outline" className="w-full">
-                <Info className="h-4 w-4 mr-2" />
-                Über PillBuddy
-              </Button>
-            </Link>
           </CardContent>
         </Card>
 
