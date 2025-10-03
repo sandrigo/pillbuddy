@@ -1,6 +1,7 @@
+import React from 'react';
 import { useState, useEffect } from 'react';
 import { useMedications } from '@/hooks/useMedications';
-import { useEmailNotifications } from '@/hooks/useEmailNotifications';
+// import { useEmailNotifications } from '@/hooks/useEmailNotifications';
 import { MedicationCard } from '@/components/MedicationCard';
 import { MedicationForm } from '@/components/MedicationForm';
 import { Button } from '@/components/ui/button';
@@ -19,7 +20,7 @@ const Index = () => {
   const [showForm, setShowForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const { medications, addMedication, deleteMedication, updateMedication, updateCurrentAmount, getDaysRemaining, needsRefill } = useMedications();
-  const { checkAndSendNotifications } = useEmailNotifications();
+  // const { checkAndSendNotifications } = useEmailNotifications();
   const { toast } = useToast();
 
   const handleAddMedication = (data: any) => {
@@ -64,11 +65,11 @@ const Index = () => {
   const refillNeeded = filteredMedications.filter(med => needsRefill(med));
 
   // Auto-check for email notifications on app load and when medications change
-  useEffect(() => {
-    if (medications.length > 0) {
-      checkAndSendNotifications(medications, getDaysRemaining);
-    }
-  }, [medications.length]); // Only trigger on medication count change, not on every update
+  // useEffect(() => {
+  //   if (medications.length > 0) {
+  //     checkAndSendNotifications(medications, getDaysRemaining);
+  //   }
+  // }, [medications.length]); // Only trigger on medication count change, not on every update
 
   // Auto-check for PWA notifications
   useEffect(() => {
