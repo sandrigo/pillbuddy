@@ -1,6 +1,13 @@
+import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ThemeProvider } from "next-themes";
+
+import { Toaster as Sonner } from "@/components/ui/sonner";
 import App from "./App.tsx";
 import "./index.css";
+
+const queryClient = new QueryClient();
 
 // Register Service Worker for PWA
 if ('serviceWorker' in navigator) {
@@ -34,4 +41,14 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+        <App />
+        
+        <Sonner />
+      </ThemeProvider>
+    </QueryClientProvider>
+  </StrictMode>
+);
