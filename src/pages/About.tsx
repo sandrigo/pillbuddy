@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, ExternalLink, Mail, Instagram, Globe } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Mail, Instagram, Globe, Github } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { BottomNavigation } from '@/components/BottomNavigation';
 
@@ -28,7 +28,7 @@ const About = () => {
                 PillBuddy ist mein Herzensprojekt, das ich mithilfe von <strong>Lovable</strong> und <strong>Claude</strong> realisiert habe.
               </p>
               <p className="text-muted-foreground leading-relaxed">
-                Die Idee entstand aus dem persönlichen Bedürfnis, nie wieder zu vergessen, rechtzeitig Medikamente nachzubestellen. Was als kleine Idee begann, ist zu einer vollständigen PWA geworden, die offline funktioniert und Push-Benachrichtigungen unterstützt.
+                Die Idee entstand aus dem persönlichen Bedürfnis, nie wieder zu vergessen, rechtzeitig meine Medikamente nachzubestellen. Was als kleine Idee begann, ist zu einer vollständigen PWA geworden, die offline funktioniert und Push-Benachrichtigungen unterstützt.
               </p>
             </div>
 
@@ -40,7 +40,7 @@ const About = () => {
             </div>
 
             <div className="pt-4 space-y-3">
-              <p className="font-semibold">Entwickelt von: Sandrigo</p>
+              <p className="font-semibold">Entwickelt von: Sandrigo Z.</p>
               <div className="flex flex-col gap-3">
                 <a 
                   href="https://wagehals.media" 
@@ -72,6 +72,20 @@ const About = () => {
               </div>
             </div>
 
+            <div className="pt-4 space-y-3">
+              <p className="font-semibold">GitHub Repository</p>
+              <a 
+                href="https://github.com/sandrigo/pillbuddy" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-primary hover:underline"
+              >
+                <Github className="h-4 w-4" />
+                github.com/sandrigo/pillbuddy
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+
             <div className="pt-4">
               <h2 className="text-xl font-semibold mb-4 text-primary">Tech Stack</h2>
               <ul className="space-y-2">
@@ -92,7 +106,7 @@ const About = () => {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary">🤖</span>
-                  <span className="text-muted-foreground">Claude (AI Assistant)</span>
+                  <span className="text-muted-foreground">Claude Sonnet 4.5 (AI Assistant)</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary">📱</span>
