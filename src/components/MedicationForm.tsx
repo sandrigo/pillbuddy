@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Pill, Search } from 'lucide-react';
+import { Plus, Pill } from 'lucide-react';
 import { MedicationFormData, Medication } from '@/types/medication';
-import { getMedicationInfo } from '@/utils/medicationDatabase';
 
 interface MedicationFormProps {
   onSubmit: (data: MedicationFormData) => void;
@@ -19,27 +19,12 @@ export const MedicationForm = ({ onSubmit }: MedicationFormProps) => {
     currentAmount: 0,
     dailyDosage: 1,
     interval: 'daily',
-    reminderThresholdDays: 14
+    reminderThresholdDays: 14,
+    activeIngredient: '',
+    indication: '',
+    description: '',
+    personalNotes: ''
   });
-  
-  const [isLoadingPzn, setIsLoadingPzn] = useState(false);
-
-  
-  const handlePznLookup = async () => {
-    if (!formData.pzn) return;
-    
-    setIsLoadingPzn(true);
-    try {
-      const info = await getMedicationInfo(formData.pzn);
-      if (info && !formData.name.trim()) {
-        setFormData(prev => ({ ...prev, name: info.name }));
-      }
-    } catch (error) {
-      console.error('Fehler beim Laden der PZN-Info:', error);
-    } finally {
-      setIsLoadingPzn(false);
-    }
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,7 +36,11 @@ export const MedicationForm = ({ onSubmit }: MedicationFormProps) => {
         currentAmount: 0,
         dailyDosage: 1,
         interval: 'daily',
-        reminderThresholdDays: 14
+        reminderThresholdDays: 14,
+        activeIngredient: '',
+        indication: '',
+        description: '',
+        personalNotes: ''
       });
     }
   };
@@ -78,7 +67,7 @@ export const MedicationForm = ({ onSubmit }: MedicationFormProps) => {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Medikament Name</Label>
+            <Label htmlFor="name">Medikament Name *</Label>
             <Input
               id="name"
               type="text"
@@ -91,38 +80,63 @@ export const MedicationForm = ({ onSubmit }: MedicationFormProps) => {
           
           <div className="space-y-2">
             <Label htmlFor="pzn">PZN (optional)</Label>
-            <div className="flex gap-2">
-              <Input
-                id="pzn"
-                type="text"
-                value={formData.pzn || ''}
-                onChange={(e) => setFormData({ ...formData, pzn: e.target.value })}
-                placeholder="z.B. 02532876"
-                maxLength={8}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handlePznLookup}
-                disabled={!formData.pzn || isLoadingPzn}
-                className="shrink-0"
-              >
-                {isLoadingPzn ? (
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                ) : (
-                  <Search className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Pharmazentralnummer für automatische Medikamenteninfo
-            </p>
+            <Input
+              id="pzn"
+              type="text"
+              value={formData.pzn || ''}
+              onChange={(e) => setFormData({ ...formData, pzn: e.target.value })}
+              placeholder="z.B. 02532876"
+              maxLength={8}
+            />
           </div>
           
+          <div className="space-y-2">
+            <Label htmlFor="activeIngredient">Wirkstoff (optional)</Label>
+            <Input
+              id="activeIngredient"
+              type="text"
+              value={formData.activeIngredient || ''}
+              onChange={(e) => setFormData({ ...formData, activeIngredient: e.target.value })}
+              placeholder="z.B. Ibuprofen"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="indication">Anwendungsgebiet (optional)</Label>
+            <Input
+              id="indication"
+              type="text"
+              value={formData.indication || ''}
+              onChange={(e) => setFormData({ ...formData, indication: e.target.value })}
+              placeholder="z.B. Schmerzen und Entzündungen"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="description">Beschreibung (optional)</Label>
+            <Textarea
+              id="description"
+              value={formData.description || ''}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              placeholder="Weitere Informationen zum Medikament..."
+              rows={2}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="personalNotes">Persönliche Notizen (optional)</Label>
+            <Textarea
+              id="personalNotes"
+              value={formData.personalNotes || ''}
+              onChange={(e) => setFormData({ ...formData, personalNotes: e.target.value })}
+              placeholder="Ihre persönlichen Notizen..."
+              rows={2}
+            />
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="currentAmount">Aktueller Vorrat</Label>
+              <Label htmlFor="currentAmount">Aktueller Vorrat *</Label>
               <Input
                 id="currentAmount"
                 type="number"
@@ -135,7 +149,7 @@ export const MedicationForm = ({ onSubmit }: MedicationFormProps) => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="dailyDosage">Dosierung pro Einnahme</Label>
+              <Label htmlFor="dailyDosage">Dosierung pro Einnahme *</Label>
               <Input
                 id="dailyDosage"
                 type="number"
@@ -150,7 +164,7 @@ export const MedicationForm = ({ onSubmit }: MedicationFormProps) => {
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="interval">Einnahme-Intervall</Label>
+            <Label htmlFor="interval">Einnahme-Intervall *</Label>
             <Select value={formData.interval} onValueChange={(value: Medication['interval']) => setFormData({ ...formData, interval: value })}>
               <SelectTrigger>
                 <SelectValue />
@@ -166,7 +180,7 @@ export const MedicationForm = ({ onSubmit }: MedicationFormProps) => {
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="reminderThreshold">Erinnerung bei (Tage vor Aufbrauchen)</Label>
+            <Label htmlFor="reminderThreshold">Erinnerung bei (Tage vor Aufbrauchen) *</Label>
             <Input
               id="reminderThreshold"
               type="number"

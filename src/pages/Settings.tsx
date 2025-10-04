@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -6,8 +6,11 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { ArrowLeft, Bell, Trash2, TestTube2, Smartphone, Wifi } from 'lucide-react';
+import { ArrowLeft, Bell, Trash2, TestTube2, Smartphone, Wifi, Download, Upload, Mail } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { BottomNavigation } from '@/components/BottomNavigation';
+import { EmailNotificationSettings } from '@/components/EmailNotificationSettings';
+import { useMedications } from '@/hooks/useMedications';
 import {
   getNotificationSettings,
   saveNotificationSettings,
@@ -19,7 +22,10 @@ import {
 } from '@/utils/notifications';
 
 const Settings = () => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { exportMedications, importMedications } = useMedications();
   const [settings, setSettings] = useState<NotificationSettingsType>(getNotificationSettings());
+  const [showEmailSettings, setShowEmailSettings] = useState(false);
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>(
     isNotificationSupported() ? Notification.permission : 'denied'
   );
@@ -88,6 +94,42 @@ const Settings = () => {
     }
   };
 
+  const handleExport = () => {
+    exportMedications();
+    toast.success('Export erfolgreich', {
+      description: 'Medikamentenliste wurde heruntergeladen.',
+    });
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const content = e.target?.result as string;
+        const success = importMedications(content);
+        if (success) {
+          toast.success('Import erfolgreich', {
+            description: 'Medikamentenliste wurde importiert.',
+          });
+        } else {
+          toast.error('Import fehlgeschlagen', {
+            description: 'Die Datei konnte nicht gelesen werden.',
+          });
+        }
+      };
+      reader.readAsText(file);
+    }
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const getPermissionBadge = () => {
     switch (notificationPermission) {
       case 'granted':
@@ -113,7 +155,7 @@ const Settings = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4">
+    <div className="min-h-screen bg-background p-4 pb-24">
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">
@@ -127,6 +169,63 @@ const Settings = () => {
             <p className="text-muted-foreground">PillBuddy Konfiguration</p>
           </div>
         </div>
+
+        {/* App Functions */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Smartphone className="h-5 w-5" />
+              App-Funktionen
+            </CardTitle>
+            <CardDescription>
+              Daten verwalten und Email-Einstellungen
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Button
+              onClick={handleExport}
+              variant="outline"
+              className="w-full justify-start"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Export Medikamentenliste
+            </Button>
+            
+            <Button
+              onClick={handleImportClick}
+              variant="outline"
+              className="w-full justify-start"
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              Import Medikamentenliste
+            </Button>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json"
+              onChange={handleImport}
+              style={{ display: 'none' }}
+            />
+
+            <Separator />
+
+            <Button
+              onClick={() => setShowEmailSettings(!showEmailSettings)}
+              variant="outline"
+              className="w-full justify-start border-primary/30 text-primary hover:bg-primary/5"
+            >
+              <Mail className="h-4 w-4 mr-2" />
+              {showEmailSettings ? 'Email-Setup schließen' : 'Email-Setup öffnen'}
+            </Button>
+
+            {showEmailSettings && (
+              <div className="mt-4">
+                <EmailNotificationSettings />
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Notification Settings */}
         <Card>
@@ -327,6 +426,9 @@ const Settings = () => {
           </Card>
         )}
       </div>
+      
+      {/* Bottom Navigation */}
+      <BottomNavigation />
     </div>
   );
 };

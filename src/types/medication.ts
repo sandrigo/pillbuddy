@@ -22,4 +22,8 @@ export interface MedicationFormData {
   dailyDosage: number;
   interval: Medication['interval'];
   reminderThresholdDays: number;
+  activeIngredient?: string;
+  indication?: string;
+  description?: string;
+  personalNotes?: string;
 }

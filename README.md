@@ -1,73 +1,86 @@
-# Welcome to your Lovable project
+# PillBuddy
 
-## Project info
+V1.1 Changes 04.10.2025: 
+### 1. Header kompakter (80px statt 200px)
 
-**URL**: https://lovable.dev/projects/6102c8ad-1d81-4c74-9aca-58e710f1ec30
+- Logo von 64px auf 40px verkleinert
+- Tagline "Ihr digitaler Medikamenten-Assistent" entfernt
+- "Gesund bleiben leicht gemacht" Text entfernt
+- Kompaktes Layout mit nur Logo + Name + Online-Status + Settings-Icon
 
-## How can I edit this code?
+### 2. Buttons aufgeräumt
 
-There are several ways of editing your application.
+- Export, Import und Email-Setup aus Hauptseite entfernt
+- Nur "Hinzufügen" Button bleibt sichtbar
+- Alle 3 Funktionen ins Settings-Menü unter "App-Funktionen" verschoben
 
-**Use Lovable**
+### 3. "Über PillBuddy" Feature
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/6102c8ad-1d81-4c74-9aca-58e710f1ec30) and start prompting.
+- Neue About-Seite mit vollständigem Inhalt erstellt (Herzensprojekt, Tech Stack, Kontakte)
+- Floating Button (ℹ️) unten rechts auf Hauptseite (80px vom Rand)
+- Alle Links funktional (wagehals.media, Instagram, Email, Lovable)
+- Route `/about` hinzugefügt
 
-Changes made via Lovable will be committed automatically to this repo.
+### 4. Medikamenten-Karten verbessert
 
-**Use your preferred IDE**
+- __Prominente Tage-Anzeige__: "Vorrat für X Tage" groß und fett
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+- __Fortschrittsbalken__: Visueller Progress-Bar mit Farbcodierung
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- __Farbiger linker Border__ (4px):
 
-Follow these steps:
+  - Grün: > 14 Tage
+  - Gelb: 7-14 Tage
+  - Orange: 3-7 Tage
+  - Rot: < 3 Tage
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+- __Medikamenteninfo eingeklappt__: Click auf Button zum Aufklappen (▼/▲)
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+- Mehr Abstand zwischen Karten (24px statt 16px)
 
-# Step 3: Install the necessary dependencies.
-npm i
+### 5. Löschen-Bestätigung
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+- Bestätigungs-Dialog: "Medikament '[Name]' wirklich löschen?"
+- Toast-Nachricht: "Medikament gelöscht" nach Bestätigung
 
-**Edit a file directly in GitHub**
+### 6. PZN-Suche komplett entfernt
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+- Kein PZN-Lookup Button mehr
+- Kein "Medikamenteninfo manuell bearbeiten" Toggle
+- Alle Felder (Wirkstoff, Anwendungsgebiet, Beschreibung, Notizen) sind IMMER editierbar
+- Alle optionalen Felder klar markiert mit "(optional)"
+- Vereinfachtes Formular
 
-**Use GitHub Codespaces**
+### 7. Spacing optimiert
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- Stats-Karten: 3 Spalten, kompakter (gap-3 statt gap-4)
+- Text kürzer: "Gesamt", "Vorrätig", "Nachschub"
+- Medikamenten-Liste: space-y-6 für besseren Abstand
+- Bottom padding: pb-24 für Bottom Navigation
 
-## What technologies are used for this project?
+### 8. Bottom Navigation
 
-This project is built with:
+- Neue Komponente mit 3 Tabs: 🏠 Home, ➕ Hinzufügen, ⚙️ Settings
+- Fixed am unteren Rand (z-50)
+- Aktiver Tab in Grün (#4FD1C5)
+- In allen Pages integriert (Index, Settings, About)
+- Hinzufügen-Tab öffnet ?add=true Parameter
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### 9. Weitere Verbesserungen
 
-## How can I deploy this project?
+- Types erweitert: MedicationFormData enthält alle neuen Felder
+- MedicationEditForm: Felder immer editierbar
+- Progress-Bar: Custom Implementation für Farbcodierung
+- Alle Pages: pb-24 für Bottom Navigation Platz
 
-Simply open [Lovable](https://lovable.dev/projects/6102c8ad-1d81-4c74-9aca-58e710f1ec30) and click on Share -> Publish.
+## 📱 Mobile-First Design
 
-## Can I connect a custom domain to my Lovable project?
+Die App ist nun deutlich kompakter und übersichtlicher auf mobilen Geräten:
 
-Yes, you can!
+- Header: 80px (vorher ~200px)
+- Wichtige Infos prominent (Vorrat für X Tage)
+- Floating Button für Über-Seite
+- Bottom Navigation für schnelle Navigation
+- Touch-optimierte Buttons und Icons
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)

@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Trash2, Pill, Calendar, AlertCircle, Edit3, Check, X, Settings, CalendarDays, StickyNote } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Trash2, Pill, Calendar, AlertCircle, Edit3, Check, X, Settings, CalendarDays, StickyNote, ChevronDown, ChevronUp } from 'lucide-react';
 import { MedicationEditForm } from './MedicationEditForm';
 import { Medication } from '@/types/medication';
 
@@ -30,6 +31,7 @@ const getIntervalText = (interval: Medication['interval']) => {
 export const MedicationCard = ({ medication, daysRemaining, needsRefill, onDelete, onUpdateAmount, onUpdateMedication }: MedicationCardProps) => {
   const [isEditingAmount, setIsEditingAmount] = useState(false);
   const [isEditingMedication, setIsEditingMedication] = useState(false);
+  const [showMedicationInfo, setShowMedicationInfo] = useState(false);
   const [editAmount, setEditAmount] = useState(medication.currentAmount);
 
   const handleSaveAmount = () => {
@@ -47,6 +49,26 @@ export const MedicationCard = ({ medication, daysRemaining, needsRefill, onDelet
   const handleUpdateMedication = (id: string, updates: Partial<Medication>) => {
     onUpdateMedication(id, updates);
     setIsEditingMedication(false);
+  };
+
+  const getBorderColor = () => {
+    if (daysRemaining <= 3) return 'border-l-red-500';
+    if (daysRemaining <= 7) return 'border-l-orange-500';
+    if (daysRemaining <= 14) return 'border-l-yellow-500';
+    return 'border-l-green-500';
+  };
+
+  const getProgressPercentage = () => {
+    const maxDays = medication.reminderThresholdDays || 14;
+    const percentage = (daysRemaining / maxDays) * 100;
+    return Math.min(Math.max(percentage, 0), 100);
+  };
+
+  const getProgressColor = () => {
+    if (daysRemaining <= 3) return 'bg-red-500';
+    if (daysRemaining <= 7) return 'bg-orange-500';
+    if (daysRemaining <= 14) return 'bg-yellow-500';
+    return 'bg-green-500';
   };
 
   const getZeroDate = () => {
@@ -78,7 +100,7 @@ export const MedicationCard = ({ medication, daysRemaining, needsRefill, onDelet
   }
 
   return (
-    <Card className={`shadow-gentle hover:shadow-soft transition-all duration-200 border-border/50 ${needsRefill ? 'border-warning/30 bg-warning/5' : ''}`}>
+    <Card className={`shadow-gentle hover:shadow-soft transition-all duration-200 border-l-4 ${getBorderColor()} ${needsRefill ? 'border-warning/30 bg-warning/5' : ''}`}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2">
@@ -113,7 +135,32 @@ export const MedicationCard = ({ medication, daysRemaining, needsRefill, onDelet
         </div>
       </CardHeader>
       
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-4">
+        {/* Prominente Tage-Anzeige */}
+        <div className="bg-primary/5 rounded-lg p-4">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              {needsRefill ? (
+                <AlertCircle className="h-5 w-5 text-warning" />
+              ) : (
+                <Calendar className="h-5 w-5 text-success" />
+              )}
+              <span className="text-2xl font-bold">
+                Vorrat für {daysRemaining} Tag{daysRemaining !== 1 ? 'e' : ''}
+              </span>
+            </div>
+          </div>
+          <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+            <div 
+              className={`h-full transition-all ${getProgressColor()}`}
+              style={{ width: `${getProgressPercentage()}%` }}
+            />
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">
+            Leer am: {getZeroDate()}
+          </p>
+        </div>
+
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-primary" />
@@ -172,27 +219,39 @@ export const MedicationCard = ({ medication, daysRemaining, needsRefill, onDelet
           <span className="font-medium">{getIntervalText(medication.interval)}</span>
         </div>
         
-        {/* Medikamenteninfo */}
+        {/* Medikamenteninfo - Eingeklappt */}
         {(medication.description || medication.activeIngredient || medication.indication) && (
-          <div className="mt-4 p-3 bg-muted/30 rounded-lg border">
-            <h4 className="text-sm font-semibold mb-2 text-primary">Medikamenteninfo</h4>
-            <div className="space-y-1 text-xs">
-              {medication.activeIngredient && (
-                <div>
-                  <span className="font-medium">Wirkstoff:</span> {medication.activeIngredient}
+          <div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowMedicationInfo(!showMedicationInfo)}
+              className="w-full justify-between text-primary hover:bg-primary/5"
+            >
+              <span className="font-semibold">Medikamenteninfo</span>
+              {showMedicationInfo ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </Button>
+            {showMedicationInfo && (
+              <div className="mt-2 p-3 bg-muted/30 rounded-lg border">
+                <div className="space-y-1 text-xs">
+                  {medication.activeIngredient && (
+                    <div>
+                      <span className="font-medium">Wirkstoff:</span> {medication.activeIngredient}
+                    </div>
+                  )}
+                  {medication.indication && (
+                    <div>
+                      <span className="font-medium">Anwendung:</span> {medication.indication}
+                    </div>
+                  )}
+                  {medication.description && (
+                    <div>
+                      <span className="font-medium">Beschreibung:</span> {medication.description}
+                    </div>
+                  )}
                 </div>
-              )}
-              {medication.indication && (
-                <div>
-                  <span className="font-medium">Anwendung:</span> {medication.indication}
-                </div>
-              )}
-              {medication.description && (
-                <div>
-                  <span className="font-medium">Beschreibung:</span> {medication.description}
-                </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -206,31 +265,11 @@ export const MedicationCard = ({ medication, daysRemaining, needsRefill, onDelet
             <p className="text-xs text-accent-foreground">{medication.personalNotes}</p>
           </div>
         )}
-        
-        <div className="flex items-center justify-between pt-2">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              {needsRefill ? (
-                <AlertCircle className="h-4 w-4 text-warning" />
-              ) : (
-                <Calendar className="h-4 w-4 text-success" />
-              )}
-              <span className="text-sm font-medium">
-                {daysRemaining} Tag{daysRemaining !== 1 ? 'e' : ''} verbleibend
-              </span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span>Leer am:</span>
-              <span className="font-medium">{getZeroDate()}</span>
-            </div>
-          </div>
-          
-          {needsRefill && (
-            <Badge variant="outline" className="border-warning text-warning-foreground">
-              Nachschub benötigt
-            </Badge>
-          )}
-        </div>
+        {needsRefill && (
+          <Badge variant="outline" className="border-warning text-warning-foreground w-full justify-center py-2">
+            Nachschub benötigt
+          </Badge>
+        )}
       </CardContent>
     </Card>
   );
