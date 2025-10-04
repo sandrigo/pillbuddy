@@ -23,6 +23,7 @@ const Index = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const { medications, addMedication, deleteMedication, updateMedication, updateCurrentAmount, getDaysRemaining, needsRefill } = useMedications();
   const { toast } = useToast();
+  const formInputRef = useRef<HTMLInputElement>(null);
 
   const handleAddMedication = (data: any) => {
     addMedication(data);
@@ -80,6 +81,23 @@ const Index = () => {
       setShowForm(true);
     }
   }, [location]);
+
+  // Focus and scroll to form when it opens
+  useEffect(() => {
+    if (showForm && formInputRef.current) {
+      // Small delay to ensure DOM is ready
+      setTimeout(() => {
+        formInputRef.current?.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start' 
+        });
+        // Additional delay for focus after scroll starts
+        setTimeout(() => {
+          formInputRef.current?.focus();
+        }, 300);
+      }, 100);
+    }
+  }, [showForm]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -166,7 +184,7 @@ const Index = () => {
 
         {/* Add Medication Form */}
         {showForm && (
-          <MedicationForm onSubmit={handleAddMedication} />
+          <MedicationForm ref={formInputRef} onSubmit={handleAddMedication} />
         )}
 
         {/* Medications List */}

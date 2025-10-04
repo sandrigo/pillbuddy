@@ -108,7 +108,7 @@ export const InstallPWA = () => {
 
   return (
     <>
-      <div className="fixed bottom-4 right-4 z-50 animate-in fade-in slide-in-from-bottom-4">
+      <div className="fixed bottom-20 right-4 z-50 animate-in fade-in slide-in-from-bottom-4">
         <div className="bg-card border rounded-lg shadow-lg p-4 max-w-sm flex items-center gap-3">
           <div className="flex-1">
             <h3 className="font-semibold text-sm mb-1">📱 PillBuddy App installieren</h3>

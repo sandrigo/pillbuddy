@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, forwardRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,7 +12,7 @@ interface MedicationFormProps {
   onSubmit: (data: MedicationFormData) => void;
 }
 
-export const MedicationForm = ({ onSubmit }: MedicationFormProps) => {
+export const MedicationForm = forwardRef<HTMLInputElement, MedicationFormProps>(({ onSubmit }, ref) => {
   const [formData, setFormData] = useState<MedicationFormData>({
     name: '',
     pzn: '',
@@ -69,6 +69,7 @@ export const MedicationForm = ({ onSubmit }: MedicationFormProps) => {
           <div className="space-y-2">
             <Label htmlFor="name">Medikament Name *</Label>
             <Input
+              ref={ref}
               id="name"
               type="text"
               value={formData.name}
@@ -142,7 +143,22 @@ export const MedicationForm = ({ onSubmit }: MedicationFormProps) => {
                 type="number"
                 min="1"
                 value={formData.currentAmount || ''}
-                onChange={(e) => setFormData({ ...formData, currentAmount: parseInt(e.target.value) || 0 })}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === '') {
+                    setFormData({ ...formData, currentAmount: '' as any });
+                  } else {
+                    const numValue = parseInt(value);
+                    if (!isNaN(numValue)) {
+                      setFormData({ ...formData, currentAmount: numValue });
+                    }
+                  }
+                }}
+                onBlur={(e) => {
+                  if (e.target.value === '' || parseInt(e.target.value) < 1) {
+                    setFormData({ ...formData, currentAmount: 0 });
+                  }
+                }}
                 placeholder="Anzahl Tabletten"
                 required
               />
@@ -156,7 +172,22 @@ export const MedicationForm = ({ onSubmit }: MedicationFormProps) => {
                 min="0.25"
                 step="0.25"
                 value={formData.dailyDosage || ''}
-                onChange={(e) => setFormData({ ...formData, dailyDosage: parseFloat(e.target.value) || 1 })}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === '') {
+                    setFormData({ ...formData, dailyDosage: '' as any });
+                  } else {
+                    const numValue = parseFloat(value);
+                    if (!isNaN(numValue)) {
+                      setFormData({ ...formData, dailyDosage: numValue });
+                    }
+                  }
+                }}
+                onBlur={(e) => {
+                  if (e.target.value === '' || parseFloat(e.target.value) < 0.25) {
+                    setFormData({ ...formData, dailyDosage: 1 });
+                  }
+                }}
                 placeholder="z.B. 1, 0.5..."
                 required
               />
@@ -187,7 +218,22 @@ export const MedicationForm = ({ onSubmit }: MedicationFormProps) => {
               min="1"
               max="30"
               value={formData.reminderThresholdDays || ''}
-              onChange={(e) => setFormData({ ...formData, reminderThresholdDays: parseInt(e.target.value) || 14 })}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === '') {
+                  setFormData({ ...formData, reminderThresholdDays: '' as any });
+                } else {
+                  const numValue = parseInt(value);
+                  if (!isNaN(numValue)) {
+                    setFormData({ ...formData, reminderThresholdDays: numValue });
+                  }
+                }
+              }}
+              onBlur={(e) => {
+                if (e.target.value === '' || parseInt(e.target.value) < 1) {
+                  setFormData({ ...formData, reminderThresholdDays: 14 });
+                }
+              }}
               placeholder="14"
               required
             />
@@ -205,4 +251,6 @@ export const MedicationForm = ({ onSubmit }: MedicationFormProps) => {
       </CardContent>
     </Card>
   );
-};
+});
+
+MedicationForm.displayName = 'MedicationForm';

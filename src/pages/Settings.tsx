@@ -291,7 +291,23 @@ const Settings = () => {
                   min="1"
                   max="30"
                   value={settings.warningThreshold}
-                  onChange={(e) => handleSettingsChange('warningThreshold', parseInt(e.target.value) || 7)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === '') {
+                      // Allow empty field temporarily
+                      setSettings({ ...settings, warningThreshold: '' as any });
+                    } else {
+                      const numValue = parseInt(value);
+                      if (!isNaN(numValue)) {
+                        handleSettingsChange('warningThreshold', numValue);
+                      }
+                    }
+                  }}
+                  onBlur={(e) => {
+                    if (e.target.value === '' || parseInt(e.target.value) < 1) {
+                      handleSettingsChange('warningThreshold', 7);
+                    }
+                  }}
                   className="w-32"
                 />
                 <p className="text-sm text-muted-foreground">
@@ -307,7 +323,23 @@ const Settings = () => {
                   min="0"
                   max="10"
                   value={settings.urgentThreshold}
-                  onChange={(e) => handleSettingsChange('urgentThreshold', parseInt(e.target.value) || 3)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === '') {
+                      // Allow empty field temporarily
+                      setSettings({ ...settings, urgentThreshold: '' as any });
+                    } else {
+                      const numValue = parseInt(value);
+                      if (!isNaN(numValue)) {
+                        handleSettingsChange('urgentThreshold', numValue);
+                      }
+                    }
+                  }}
+                  onBlur={(e) => {
+                    if (e.target.value === '' || parseInt(e.target.value) < 0) {
+                      handleSettingsChange('urgentThreshold', 3);
+                    }
+                  }}
                   className="w-32"
                 />
                 <p className="text-sm text-muted-foreground">
@@ -323,7 +355,23 @@ const Settings = () => {
                   min="0"
                   max="5"
                   value={settings.criticalThreshold}
-                  onChange={(e) => handleSettingsChange('criticalThreshold', parseInt(e.target.value) || 0)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === '') {
+                      // Allow empty field temporarily
+                      setSettings({ ...settings, criticalThreshold: '' as any });
+                    } else {
+                      const numValue = parseInt(value);
+                      if (!isNaN(numValue)) {
+                        handleSettingsChange('criticalThreshold', numValue);
+                      }
+                    }
+                  }}
+                  onBlur={(e) => {
+                    if (e.target.value === '' || parseInt(e.target.value) < 0) {
+                      handleSettingsChange('criticalThreshold', 0);
+                    }
+                  }}
                   className="w-32"
                 />
                 <p className="text-sm text-muted-foreground">

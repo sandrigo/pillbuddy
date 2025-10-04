@@ -133,7 +133,22 @@ export const MedicationEditForm = ({ medication, onSubmit, onCancel }: Medicatio
                 type="number"
                 min="0"
                 value={formData.currentAmount}
-                onChange={(e) => setFormData({ ...formData, currentAmount: parseInt(e.target.value) || 0 })}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === '') {
+                    setFormData({ ...formData, currentAmount: '' as any });
+                  } else {
+                    const numValue = parseInt(value);
+                    if (!isNaN(numValue)) {
+                      setFormData({ ...formData, currentAmount: numValue });
+                    }
+                  }
+                }}
+                onBlur={(e) => {
+                  if (e.target.value === '' || parseInt(e.target.value) < 0) {
+                    setFormData({ ...formData, currentAmount: 0 });
+                  }
+                }}
                 required
               />
             </div>
@@ -146,7 +161,22 @@ export const MedicationEditForm = ({ medication, onSubmit, onCancel }: Medicatio
                 min="0.5"
                 step="0.5"
                 value={formData.dailyDosage}
-                onChange={(e) => setFormData({ ...formData, dailyDosage: parseFloat(e.target.value) || 1 })}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === '') {
+                    setFormData({ ...formData, dailyDosage: '' as any });
+                  } else {
+                    const numValue = parseFloat(value);
+                    if (!isNaN(numValue)) {
+                      setFormData({ ...formData, dailyDosage: numValue });
+                    }
+                  }
+                }}
+                onBlur={(e) => {
+                  if (e.target.value === '' || parseFloat(e.target.value) < 0.5) {
+                    setFormData({ ...formData, dailyDosage: 1 });
+                  }
+                }}
                 required
               />
             </div>
@@ -176,7 +206,22 @@ export const MedicationEditForm = ({ medication, onSubmit, onCancel }: Medicatio
               min="1"
               max="30"
               value={formData.reminderThresholdDays}
-              onChange={(e) => setFormData({ ...formData, reminderThresholdDays: parseInt(e.target.value) || 7 })}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === '') {
+                  setFormData({ ...formData, reminderThresholdDays: '' as any });
+                } else {
+                  const numValue = parseInt(value);
+                  if (!isNaN(numValue)) {
+                    setFormData({ ...formData, reminderThresholdDays: numValue });
+                  }
+                }
+              }}
+              onBlur={(e) => {
+                if (e.target.value === '' || parseInt(e.target.value) < 1) {
+                  setFormData({ ...formData, reminderThresholdDays: 7 });
+                }
+              }}
               required
             />
             <p className="text-xs text-muted-foreground mt-1">
