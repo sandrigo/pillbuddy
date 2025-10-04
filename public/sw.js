@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pillbuddy-v2';
+const CACHE_NAME = 'pillbuddy-v3';
 const OFFLINE_URL = '/offline.html';
 
 const STATIC_ASSETS = [
@@ -10,6 +10,16 @@ const STATIC_ASSETS = [
   '/badge-72.png'
 ];
 
+// Message Handler - Für SKIP_WAITING Command
+self.addEventListener('message', (event) => {
+  console.log('[SW] Message received:', event.data);
+  
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    console.log('[SW] SKIP_WAITING message received - activating new service worker');
+    self.skipWaiting();
+  }
+});
+
 // Install Event - Cache initialisieren
 self.addEventListener('install', (event) => {
   console.log('[SW] Installing Service Worker...');
@@ -19,7 +29,8 @@ self.addEventListener('install', (event) => {
       return cache.addAll(STATIC_ASSETS).catch((err) => {
         console.error('[SW] Failed to cache:', err);
       });
-    }).then(() => self.skipWaiting())
+    })
+    // Removed auto-skipWaiting - now controlled by user action
   );
 });
 

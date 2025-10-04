@@ -18,6 +18,12 @@ if ('serviceWorker' in navigator) {
           newWorker?.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
               console.log('✨ New Service Worker available - refresh to update');
+              
+              // Dispatch custom event to notify React app
+              const event = new CustomEvent('swUpdateFound', {
+                detail: { registration }
+              });
+              window.dispatchEvent(event);
             }
           });
         });

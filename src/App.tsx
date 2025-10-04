@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Settings from "./pages/Settings";
 import About from "./pages/About";
 import NotFound from "./pages/NotFound";
+import { UpdateNotification } from "@/components/UpdateNotification";
 
 const queryClient = new QueryClient();
 
@@ -16,6 +17,7 @@ const App = () => (
       <div className="dark">
         <Toaster />
         <Sonner />
+        <UpdateNotification />
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
