@@ -29,8 +29,6 @@ export const useWebRTCSync = () => {
   const timerInterval = useRef<number>();
   const pollInterval = useRef<number>();
   const realtimeChannel = useRef<any>(null);
-  const answerProcessed = useRef<boolean>(false);
-  const isProcessing = useRef<boolean>(false);
 
   // Cleanup function
   const cleanup = useCallback(() => {
@@ -55,8 +53,6 @@ export const useWebRTCSync = () => {
       realtimeChannel.current = null;
     }
     sessionId.current = '';
-    answerProcessed.current = false; // Reset flag
-    isProcessing.current = false; // Reset processing flag
   }, []);
 
   // Initialize WebRTC peer connection
@@ -111,15 +107,7 @@ export const useWebRTCSync = () => {
 
   // Start as sender (share data)
   const startSender = useCallback(async (medications: Medication[]) => {
-    // Prevent parallel executions
-    if (isProcessing.current) {
-      console.log('sender: Already processing, ignoring duplicate call');
-      return;
-    }
-    
     try {
-      isProcessing.current = true;
-      
       // Ensure complete cleanup before starting
       cleanup();
       
@@ -183,7 +171,6 @@ export const useWebRTCSync = () => {
 
       sessionId.current = session.id;
       const currentSessionId = session.id;
-      answerProcessed.current = false; // Reset flag for new session
       setStatus('waiting');
 
       // Start countdown timer
@@ -222,10 +209,8 @@ export const useWebRTCSync = () => {
             
             if (updatedSession.answer && peerConnection.current && 
                 !peerConnection.current.remoteDescription &&
-                peerConnection.current.signalingState === 'have-local-offer' &&
-                !answerProcessed.current) {
+                peerConnection.current.signalingState === 'have-local-offer') {
               
-              answerProcessed.current = true; // Mark as processed
               console.log('sender: Setting remote answer from realtime');
               setStatus('connecting');
               
@@ -243,10 +228,8 @@ export const useWebRTCSync = () => {
                   }
                 }
               } catch (err: any) {
-                if (!err.message?.includes('stable')) {
-                  console.error('Error setting remote description:', err);
-                }
-                answerProcessed.current = false; // Reset on error
+                // Silently ignore if already in stable state
+                console.error('Error setting remote description:', err);
               }
               
               // Stop polling once we got the answer
@@ -279,10 +262,8 @@ export const useWebRTCSync = () => {
 
           if (updatedSession?.answer && peerConnection.current && 
               !peerConnection.current.remoteDescription &&
-              peerConnection.current.signalingState === 'have-local-offer' &&
-              !answerProcessed.current) {
+              peerConnection.current.signalingState === 'have-local-offer') {
             
-            answerProcessed.current = true; // Mark as processed
             console.log('sender: Setting remote answer from polling');
             setStatus('connecting');
             
@@ -300,10 +281,8 @@ export const useWebRTCSync = () => {
                 }
               }
             } catch (err: any) {
-              if (!err.message?.includes('stable')) {
-                console.error('Error setting remote description:', err);
-              }
-              answerProcessed.current = false; // Reset on error
+              // Silently ignore if already in stable state
+              console.error('Error setting remote description:', err);
             }
             
             // Stop polling once we got the answer
@@ -321,8 +300,6 @@ export const useWebRTCSync = () => {
       setError('Fehler beim Starten der Übertragung');
       setStatus('error');
       cleanup();
-    } finally {
-      isProcessing.current = false;
     }
   }, [cleanup, createPeerConnection]);
 
@@ -331,15 +308,7 @@ export const useWebRTCSync = () => {
     code: string,
     onDataReceived: (medications: Medication[]) => void
   ) => {
-    // Prevent parallel executions
-    if (isProcessing.current) {
-      console.log('receiver: Already processing, ignoring duplicate call');
-      return;
-    }
-    
     try {
-      isProcessing.current = true;
-      
       // Ensure complete cleanup before starting
       cleanup();
       
@@ -488,8 +457,6 @@ export const useWebRTCSync = () => {
       setError(err.message || 'Fehler beim Verbinden');
       setStatus('error');
       cleanup();
-    } finally {
-      isProcessing.current = false;
     }
   }, [cleanup, createPeerConnection]);
 
