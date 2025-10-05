@@ -235,7 +235,7 @@ export const useWebRTCSync = () => {
                   new RTCSessionDescription(updatedSession.answer)
                 );
 
-                // Add ICE candidates from receiver
+                // Add ICE candidates from receiver (if any already available)
                 if (updatedSession.ice_candidates) {
                   for (const candidate of updatedSession.ice_candidates) {
                     await peerConnection.current.addIceCandidate(
@@ -248,11 +248,7 @@ export const useWebRTCSync = () => {
                 answerProcessed.current = false; // Reset on error
               }
               
-              // Stop polling once we got the answer
-              if (pollInterval.current) {
-                clearInterval(pollInterval.current);
-                pollInterval.current = undefined;
-              }
+              // DON'T stop polling - we still need to get receiver's ICE candidates!
             }
           }
         )
