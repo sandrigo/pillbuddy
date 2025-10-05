@@ -158,7 +158,7 @@ export const MedicationCard = ({ medication, daysRemaining, needsRefill, onDelet
           <div className="bg-primary/5 rounded-lg p-4 space-y-3">
             <div className="flex items-center gap-2">
               <Pill className="h-5 w-5 text-primary" />
-              <span className="text-lg font-bold">
+              <span className="tracking-tight text-lg font-semibold">
                 Vorrat: {medication.currentAmount} Tablette{medication.currentAmount !== 1 ? 'n' : ''}
               </span>
             </div>
