@@ -150,20 +150,21 @@ export const MedicationEditForm = ({ medication, onSubmit, onCancel }: Medicatio
                 id="currentAmount"
                 type="number"
                 min="0"
+                step="0.5"
                 value={formData.currentAmount}
                 onChange={(e) => {
                   const value = e.target.value;
                   if (value === '') {
                     setFormData({ ...formData, currentAmount: '' as any });
                   } else {
-                    const numValue = parseInt(value);
+                    const numValue = parseFloat(value);
                     if (!isNaN(numValue)) {
                       setFormData({ ...formData, currentAmount: numValue });
                     }
                   }
                 }}
                 onBlur={(e) => {
-                  if (e.target.value === '' || parseInt(e.target.value) < 0) {
+                  if (e.target.value === '' || parseFloat(e.target.value) < 0) {
                     setFormData({ ...formData, currentAmount: 0 });
                   }
                 }}

@@ -159,21 +159,22 @@ export const MedicationForm = forwardRef<HTMLInputElement, MedicationFormProps>(
               <Input
                 id="currentAmount"
                 type="number"
-                min="1"
+                min="0.5"
+                step="0.5"
                 value={formData.currentAmount || ''}
                 onChange={(e) => {
                   const value = e.target.value;
                   if (value === '') {
                     setFormData({ ...formData, currentAmount: '' as any });
                   } else {
-                    const numValue = parseInt(value);
+                    const numValue = parseFloat(value);
                     if (!isNaN(numValue)) {
                       setFormData({ ...formData, currentAmount: numValue });
                     }
                   }
                 }}
                 onBlur={(e) => {
-                  if (e.target.value === '' || parseInt(e.target.value) < 1) {
+                  if (e.target.value === '' || parseFloat(e.target.value) < 0.5) {
                     setFormData({ ...formData, currentAmount: 0 });
                   }
                 }}
@@ -260,7 +261,7 @@ export const MedicationForm = forwardRef<HTMLInputElement, MedicationFormProps>(
           <Button 
             type="submit" 
             className="w-full bg-gradient-medical hover:opacity-90 transition-opacity"
-            disabled={!formData.name.trim() || formData.currentAmount <= 0 || formData.dailyDosage <= 0}
+            disabled={!formData.name.trim() || formData.currentAmount < 0.5 || formData.dailyDosage <= 0}
           >
             <Pill className="h-4 w-4 mr-2" />
             Medikament hinzufügen
