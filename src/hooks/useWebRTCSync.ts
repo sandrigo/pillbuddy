@@ -238,6 +238,7 @@ export const useWebRTCSync = () => {
         .subscribe();
 
       // Fallback: Poll for updates every 2 seconds (in case Realtime isn't enabled)
+      let lastReceiverCandidateCount = 0;
       pollInterval.current = window.setInterval(async () => {
         // Only proceed if this is still the current session
         if (sessionId.current !== currentSessionId) {
@@ -255,6 +256,7 @@ export const useWebRTCSync = () => {
             .eq('id', currentSessionId)
             .single();
 
+          // Check for answer
           if (updatedSession?.answer && peerConnection.current && 
               !peerConnection.current.remoteDescription &&
               peerConnection.current.signalingState === 'have-local-offer') {
@@ -266,25 +268,27 @@ export const useWebRTCSync = () => {
               await peerConnection.current.setRemoteDescription(
                 new RTCSessionDescription(updatedSession.answer)
               );
-
-              // Add ICE candidates
-              if (updatedSession.ice_candidates) {
-                for (const candidate of updatedSession.ice_candidates) {
+            } catch (err: any) {
+              console.error('Error setting remote description:', err);
+            }
+          }
+          
+          // Check for new ICE candidates from receiver
+          if (updatedSession?.ice_candidates && updatedSession.ice_candidates.length > lastReceiverCandidateCount) {
+            const newCandidates = updatedSession.ice_candidates.slice(lastReceiverCandidateCount);
+            console.log(`sender: Adding ${newCandidates.length} new ICE candidates from receiver`);
+            for (const candidate of newCandidates) {
+              try {
+                if (peerConnection.current) {
                   await peerConnection.current.addIceCandidate(
                     new RTCIceCandidate(candidate)
                   );
                 }
+              } catch (err) {
+                console.error('Error adding ICE candidate:', err);
               }
-            } catch (err: any) {
-              // Silently ignore if already in stable state
-              console.error('Error setting remote description:', err);
             }
-            
-            // Stop polling once we got the answer
-            if (pollInterval.current) {
-              clearInterval(pollInterval.current);
-              pollInterval.current = undefined;
-            }
+            lastReceiverCandidateCount = updatedSession.ice_candidates.length;
           }
         } catch (err) {
           console.error('Polling error:', err);
