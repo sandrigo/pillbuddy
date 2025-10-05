@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Medication } from '@/types/medication';
-import { Pill, Save, X, Settings, StickyNote } from 'lucide-react';
+import { Pill, Save, X, Settings, StickyNote, Search } from 'lucide-react';
 
 interface MedicationEditFormProps {
   medication: Medication;
@@ -60,13 +60,31 @@ export const MedicationEditForm = ({ medication, onSubmit, onCancel }: Medicatio
 
           <div>
             <Label htmlFor="pzn">PZN (optional)</Label>
-            <Input
-              id="pzn"
-              value={formData.pzn}
-              onChange={(e) => setFormData({ ...formData, pzn: e.target.value })}
-              placeholder="z.B. 12345678"
-              maxLength={8}
-            />
+            <div className="flex gap-2">
+              <Input
+                id="pzn"
+                value={formData.pzn}
+                onChange={(e) => setFormData({ ...formData, pzn: e.target.value })}
+                placeholder="z.B. 12345678"
+                maxLength={8}
+                className="flex-1"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  const pzn = formData.pzn?.trim();
+                  if (pzn) {
+                    window.open(`https://www.google.com/search?q=pzn+${pzn}`, '_blank');
+                  }
+                }}
+                disabled={!formData.pzn?.trim()}
+                className="whitespace-nowrap"
+              >
+                <Search className="h-4 w-4 mr-1" />
+                PZN Suche (Google)
+              </Button>
+            </div>
           </div>
 
           {/* Medikamenteninfo-Felder - Immer sichtbar */}

@@ -68,10 +68,11 @@ export const IntakeDialog: React.FC<IntakeDialogProps> = ({
               <Input
                 id="amount"
                 type="number"
-                min="1"
+                min="0.5"
+                step="0.5"
                 max={medication.currentAmount}
                 value={amount}
-                onChange={(e) => setAmount(parseInt(e.target.value) || 1)}
+                onChange={(e) => setAmount(parseFloat(e.target.value) || 1)}
                 className="flex-1"
               />
               <span className="text-sm text-muted-foreground">Tablette(n)</span>
@@ -103,7 +104,7 @@ export const IntakeDialog: React.FC<IntakeDialogProps> = ({
           </Button>
           <Button 
             onClick={handleConfirm}
-            disabled={amount < 1 || amount > medication.currentAmount}
+            disabled={amount < 0.5 || amount > medication.currentAmount}
             className="bg-success hover:bg-success/90"
           >
             Bestätigen

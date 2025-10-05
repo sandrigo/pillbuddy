@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Pill } from 'lucide-react';
+import { Plus, Pill, Search } from 'lucide-react';
 import { MedicationFormData, Medication } from '@/types/medication';
 
 interface MedicationFormProps {
@@ -81,14 +81,32 @@ export const MedicationForm = forwardRef<HTMLInputElement, MedicationFormProps>(
           
           <div className="space-y-2">
             <Label htmlFor="pzn">PZN (optional)</Label>
-            <Input
-              id="pzn"
-              type="text"
-              value={formData.pzn || ''}
-              onChange={(e) => setFormData({ ...formData, pzn: e.target.value })}
-              placeholder="z.B. 02532876"
-              maxLength={8}
-            />
+            <div className="flex gap-2">
+              <Input
+                id="pzn"
+                type="text"
+                value={formData.pzn || ''}
+                onChange={(e) => setFormData({ ...formData, pzn: e.target.value })}
+                placeholder="z.B. 02532876"
+                maxLength={8}
+                className="flex-1"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  const pzn = formData.pzn?.trim();
+                  if (pzn) {
+                    window.open(`https://www.google.com/search?q=pzn+${pzn}`, '_blank');
+                  }
+                }}
+                disabled={!formData.pzn?.trim()}
+                className="whitespace-nowrap"
+              >
+                <Search className="h-4 w-4 mr-1" />
+                PZN Suche (Google)
+              </Button>
+            </div>
           </div>
           
           <div className="space-y-2">

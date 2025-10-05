@@ -125,7 +125,7 @@ const About = () => {
 
             <div className="pt-6 border-t">
               <div className="flex justify-between items-center text-sm text-muted-foreground">
-                <span><strong>Version:</strong> 1.0</span>
+                <span><strong>Version:</strong> 1.2</span>
                 <span><strong>Letzte Aktualisierung:</strong> Oktober 2025</span>
               </div>
             </div>
