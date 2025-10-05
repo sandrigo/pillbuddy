@@ -30,6 +30,7 @@ export const useWebRTCSync = () => {
   const pollInterval = useRef<number>();
   const realtimeChannel = useRef<any>(null);
   const answerProcessed = useRef<boolean>(false);
+  const isProcessing = useRef<boolean>(false);
 
   // Cleanup function
   const cleanup = useCallback(() => {
@@ -55,6 +56,7 @@ export const useWebRTCSync = () => {
     }
     sessionId.current = '';
     answerProcessed.current = false; // Reset flag
+    isProcessing.current = false; // Reset processing flag
   }, []);
 
   // Initialize WebRTC peer connection
@@ -109,7 +111,15 @@ export const useWebRTCSync = () => {
 
   // Start as sender (share data)
   const startSender = useCallback(async (medications: Medication[]) => {
+    // Prevent parallel executions
+    if (isProcessing.current) {
+      console.log('sender: Already processing, ignoring duplicate call');
+      return;
+    }
+    
     try {
+      isProcessing.current = true;
+      
       // Ensure complete cleanup before starting
       cleanup();
       
@@ -311,6 +321,8 @@ export const useWebRTCSync = () => {
       setError('Fehler beim Starten der Übertragung');
       setStatus('error');
       cleanup();
+    } finally {
+      isProcessing.current = false;
     }
   }, [cleanup, createPeerConnection]);
 
@@ -319,7 +331,15 @@ export const useWebRTCSync = () => {
     code: string,
     onDataReceived: (medications: Medication[]) => void
   ) => {
+    // Prevent parallel executions
+    if (isProcessing.current) {
+      console.log('receiver: Already processing, ignoring duplicate call');
+      return;
+    }
+    
     try {
+      isProcessing.current = true;
+      
       // Ensure complete cleanup before starting
       cleanup();
       
@@ -468,6 +488,8 @@ export const useWebRTCSync = () => {
       setError(err.message || 'Fehler beim Verbinden');
       setStatus('error');
       cleanup();
+    } finally {
+      isProcessing.current = false;
     }
   }, [cleanup, createPeerConnection]);
 
