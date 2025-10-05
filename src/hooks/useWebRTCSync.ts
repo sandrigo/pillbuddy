@@ -29,6 +29,7 @@ export const useWebRTCSync = () => {
   const timerInterval = useRef<number>();
   const pollInterval = useRef<number>();
   const realtimeChannel = useRef<any>(null);
+  const answerProcessed = useRef<boolean>(false);
 
   // Cleanup function
   const cleanup = useCallback(() => {
@@ -53,6 +54,7 @@ export const useWebRTCSync = () => {
       realtimeChannel.current = null;
     }
     sessionId.current = '';
+    answerProcessed.current = false;
   }, []);
 
   // Initialize WebRTC peer connection
@@ -166,6 +168,7 @@ export const useWebRTCSync = () => {
 
       sessionId.current = session.id;
       const currentSessionId = session.id;
+      answerProcessed.current = false; // Reset for new session
       setStatus('waiting');
 
       // Start countdown timer
@@ -204,8 +207,10 @@ export const useWebRTCSync = () => {
             
             if (updatedSession.answer && peerConnection.current && 
                 !peerConnection.current.remoteDescription &&
-                peerConnection.current.signalingState === 'have-local-offer') {
+                peerConnection.current.signalingState === 'have-local-offer' &&
+                !answerProcessed.current) {
               
+              answerProcessed.current = true; // Mark as processed IMMEDIATELY
               console.log('sender: Setting remote answer from realtime');
               setStatus('connecting');
               
@@ -214,7 +219,7 @@ export const useWebRTCSync = () => {
                   new RTCSessionDescription(updatedSession.answer)
                 );
 
-                // Add ICE candidates
+                // Add ICE candidates from receiver
                 if (updatedSession.ice_candidates) {
                   for (const candidate of updatedSession.ice_candidates) {
                     await peerConnection.current.addIceCandidate(
@@ -223,8 +228,8 @@ export const useWebRTCSync = () => {
                   }
                 }
               } catch (err: any) {
-                // Silently ignore if already in stable state
                 console.error('Error setting remote description:', err);
+                answerProcessed.current = false; // Reset on error
               }
               
               // Stop polling once we got the answer
@@ -259,8 +264,10 @@ export const useWebRTCSync = () => {
           // Check for answer
           if (updatedSession?.answer && peerConnection.current && 
               !peerConnection.current.remoteDescription &&
-              peerConnection.current.signalingState === 'have-local-offer') {
+              peerConnection.current.signalingState === 'have-local-offer' &&
+              !answerProcessed.current) {
             
+            answerProcessed.current = true; // Mark as processed IMMEDIATELY
             console.log('sender: Setting remote answer from polling');
             setStatus('connecting');
             
@@ -270,6 +277,7 @@ export const useWebRTCSync = () => {
               );
             } catch (err: any) {
               console.error('Error setting remote description:', err);
+              answerProcessed.current = false; // Reset on error
             }
           }
           
