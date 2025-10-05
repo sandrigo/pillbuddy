@@ -111,6 +111,8 @@ export const useWebRTCSync = () => {
   const startSender = useCallback(async (medications: Medication[]) => {
     try {
       cleanup();
+      // Wait for cleanup to complete
+      await new Promise(resolve => setTimeout(resolve, 200));
       setStatus('generating-code');
       setError('');
       setProgress(0);
@@ -331,6 +333,8 @@ export const useWebRTCSync = () => {
   ) => {
     try {
       cleanup();
+      // Wait for cleanup to complete
+      await new Promise(resolve => setTimeout(resolve, 200));
       setStatus('connecting');
       setError('');
       setProgress(0);
