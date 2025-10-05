@@ -1,12 +1,14 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
-import { Trash2, Pill, Calendar, AlertCircle, Edit3, Check, X, Settings, CalendarDays, StickyNote, ChevronDown, ChevronUp } from 'lucide-react';
+import { Trash2, Pill, Calendar, AlertCircle, Edit3, Check, X, Settings, CalendarDays, StickyNote, ChevronDown, ChevronUp, CheckCircle } from 'lucide-react';
 import { MedicationEditForm } from './MedicationEditForm';
+import { IntakeDialog } from './IntakeDialog';
 import { Medication } from '@/types/medication';
+import { getRelativeTimeString } from '@/utils/timeUtils';
 
 interface MedicationCardProps {
   medication: Medication;
@@ -15,6 +17,8 @@ interface MedicationCardProps {
   onDelete: (id: string) => void;
   onUpdateAmount: (id: string, newAmount: number) => void;
   onUpdateMedication: (id: string, updates: Partial<Medication>) => void;
+  onRecordIntake?: (id: string, amount: number, note?: string) => void;
+  lastIntake?: Date | null;
 }
 
 const getIntervalText = (interval: Medication['interval']) => {
@@ -28,11 +32,14 @@ const getIntervalText = (interval: Medication['interval']) => {
   }
 };
 
-export const MedicationCard = ({ medication, daysRemaining, needsRefill, onDelete, onUpdateAmount, onUpdateMedication }: MedicationCardProps) => {
+export const MedicationCard = ({ medication, daysRemaining, needsRefill, onDelete, onUpdateAmount, onUpdateMedication, onRecordIntake, lastIntake }: MedicationCardProps) => {
   const [isEditingAmount, setIsEditingAmount] = useState(false);
   const [isEditingMedication, setIsEditingMedication] = useState(false);
   const [showMedicationInfo, setShowMedicationInfo] = useState(false);
+  const [showIntakeDialog, setShowIntakeDialog] = useState(false);
   const [editAmount, setEditAmount] = useState(medication.currentAmount);
+
+  const isAsNeeded = medication.interval === 'as-needed';
 
   const handleSaveAmount = () => {
     if (editAmount > 0) {
@@ -49,6 +56,12 @@ export const MedicationCard = ({ medication, daysRemaining, needsRefill, onDelet
   const handleUpdateMedication = (id: string, updates: Partial<Medication>) => {
     onUpdateMedication(id, updates);
     setIsEditingMedication(false);
+  };
+
+  const handleRecordIntake = (amount: number, note?: string) => {
+    if (onRecordIntake) {
+      onRecordIntake(medication.id, amount, note);
+    }
   };
 
   const getBorderColor = () => {
@@ -136,30 +149,71 @@ export const MedicationCard = ({ medication, daysRemaining, needsRefill, onDelet
       </CardHeader>
       
       <CardContent className="space-y-4">
-        {/* Prominente Tage-Anzeige */}
-        <div className="bg-primary/5 rounded-lg p-4">
-          <div className="flex items-center justify-between mb-2">
+        {/* Prominente Anzeige - unterschiedlich für "Bei Bedarf" vs regulär */}
+        {isAsNeeded ? (
+          <div className="bg-primary/5 rounded-lg p-4 space-y-3">
             <div className="flex items-center gap-2">
-              {needsRefill ? (
-                <AlertCircle className="h-5 w-5 text-warning" />
-              ) : (
-                <Calendar className="h-5 w-5 text-success" />
-              )}
-              <span className="text-2xl font-bold">
-                Vorrat für {daysRemaining} Tag{daysRemaining !== 1 ? 'e' : ''}
+              <Pill className="h-5 w-5 text-primary" />
+              <span className="text-lg font-bold">
+                💊 Vorrat: {medication.currentAmount} Tablette{medication.currentAmount !== 1 ? 'n' : ''}
               </span>
             </div>
+            <Badge variant="outline" className="border-primary/30 bg-primary/10 text-primary w-full justify-center py-1.5">
+              📊 Bei Bedarf
+            </Badge>
+            
+            {/* Einnahme erfassen Button */}
+            <Button 
+              onClick={() => setShowIntakeDialog(true)}
+              className="w-full bg-success hover:bg-success/90 text-white"
+              disabled={medication.currentAmount === 0}
+            >
+              <CheckCircle className="h-4 w-4 mr-2" />
+              Einnahme erfassen
+            </Button>
+
+            {/* Letzter Gebrauch */}
+            <div className="text-sm text-muted-foreground pt-2 border-t">
+              {lastIntake ? (
+                <p>Letzter Gebrauch: {getRelativeTimeString(lastIntake)}</p>
+              ) : (
+                <p>Noch nicht verwendet</p>
+              )}
+            </div>
+
+            {/* Warnung bei niedrigem Vorrat */}
+            {medication.currentAmount < 10 && medication.currentAmount > 0 && (
+              <div className="flex items-center gap-2 text-warning text-sm bg-warning/10 p-2 rounded">
+                <AlertCircle className="h-4 w-4" />
+                <span>Niedriger Vorrat: Nur noch {medication.currentAmount} Tablette{medication.currentAmount !== 1 ? 'n' : ''}</span>
+              </div>
+            )}
           </div>
-          <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
-            <div 
-              className={`h-full transition-all ${getProgressColor()}`}
-              style={{ width: `${getProgressPercentage()}%` }}
-            />
+        ) : (
+          <div className="bg-primary/5 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                {needsRefill ? (
+                  <AlertCircle className="h-5 w-5 text-warning" />
+                ) : (
+                  <Calendar className="h-5 w-5 text-success" />
+                )}
+                <span className="text-2xl font-bold">
+                  Vorrat für {daysRemaining} Tag{daysRemaining !== 1 ? 'e' : ''}
+                </span>
+              </div>
+            </div>
+            <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+              <div 
+                className={`h-full transition-all ${getProgressColor()}`}
+                style={{ width: `${getProgressPercentage()}%` }}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              Leer am: {getZeroDate()}
+            </p>
           </div>
-          <p className="text-xs text-muted-foreground mt-2">
-            Leer am: {getZeroDate()}
-          </p>
-        </div>
+        )}
 
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div className="flex items-center gap-2">
@@ -265,12 +319,20 @@ export const MedicationCard = ({ medication, daysRemaining, needsRefill, onDelet
             <p className="text-xs text-accent-foreground">{medication.personalNotes}</p>
           </div>
         )}
-        {needsRefill && (
+        {needsRefill && !isAsNeeded && (
           <Badge variant="outline" className="border-warning text-warning-foreground w-full justify-center py-2">
             Nachschub benötigt
           </Badge>
         )}
       </CardContent>
+
+      {/* Einnahme-Dialog */}
+      <IntakeDialog
+        medication={medication}
+        open={showIntakeDialog}
+        onClose={() => setShowIntakeDialog(false)}
+        onConfirm={handleRecordIntake}
+      />
     </Card>
   );
 };

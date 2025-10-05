@@ -23,11 +23,15 @@ export const useMedications = () => {
       
       if (lastUpdate && lastUpdate !== today) {
         const updatedMedications = medicationsWithDates.map((med: Medication) => {
+          // "Bei Bedarf" Medikamente werden NICHT automatisch reduziert
+          if (med.interval === 'as-needed') {
+            return med;
+          }
+          
           const dailyUsage = med.dailyDosage * (
             med.interval === 'twice-daily' ? 2 :
             med.interval === 'three-times-daily' ? 3 :
-            med.interval === 'weekly' ? 1/7 :
-            med.interval === 'as-needed' ? 0.5 : 1
+            med.interval === 'weekly' ? 1/7 : 1
           );
           
           return {
@@ -107,18 +111,55 @@ export const useMedications = () => {
   };
 
   const getDaysRemaining = (medication: Medication): number => {
+    // "Bei Bedarf" hat keine "Tage verbleibend" Berechnung
+    if (medication.interval === 'as-needed') {
+      return -1; // Spezialwert für "Bei Bedarf"
+    }
+    
     const dailyUsage = medication.dailyDosage * (
       medication.interval === 'twice-daily' ? 2 :
       medication.interval === 'three-times-daily' ? 3 :
-      medication.interval === 'weekly' ? 1/7 :
-      medication.interval === 'as-needed' ? 0.5 : 1
+      medication.interval === 'weekly' ? 1/7 : 1
     );
     
     return Math.floor(medication.currentAmount / dailyUsage);
   };
 
   const needsRefill = (medication: Medication): boolean => {
+    // "Bei Bedarf" Warnung nur bei niedrigem Vorrat (< 10 Tabletten)
+    if (medication.interval === 'as-needed') {
+      return medication.currentAmount < 10;
+    }
     return getDaysRemaining(medication) <= medication.reminderThresholdDays;
+  };
+
+  const recordIntake = (id: string, amount: number, note?: string) => {
+    const medication = medications.find(m => m.id === id);
+    if (!medication) return;
+
+    const intake = {
+      date: new Date(),
+      amount,
+      note
+    };
+
+    const updatedIntakeLog = [...(medication.intakeLog || []), intake];
+    const newAmount = Math.max(0, medication.currentAmount - amount);
+
+    updateMedication(id, {
+      intakeLog: updatedIntakeLog,
+      currentAmount: newAmount
+    });
+  };
+
+  const getLastIntake = (medication: Medication): Date | null => {
+    if (!medication.intakeLog || medication.intakeLog.length === 0) {
+      return null;
+    }
+    const sortedLog = [...medication.intakeLog].sort((a, b) => 
+      new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+    return new Date(sortedLog[0].date);
   };
 
   const exportMedications = () => {
@@ -159,6 +200,8 @@ export const useMedications = () => {
     updateCurrentAmount,
     getDaysRemaining,
     needsRefill,
+    recordIntake,
+    getLastIntake,
     exportMedications,
     importMedications
   };

@@ -21,7 +21,7 @@ const Index = () => {
   const location = useLocation();
   const [showForm, setShowForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const { medications, addMedication, deleteMedication, updateMedication, updateCurrentAmount, getDaysRemaining, needsRefill } = useMedications();
+  const { medications, addMedication, deleteMedication, updateMedication, updateCurrentAmount, getDaysRemaining, needsRefill, recordIntake, getLastIntake } = useMedications();
   const { toast } = useToast();
   const formInputRef = useRef<HTMLInputElement>(null);
 
@@ -59,6 +59,15 @@ const Index = () => {
     toast({
       title: "Medikament aktualisiert",
       description: "Die Änderungen wurden gespeichert.",
+    });
+  };
+
+  const handleRecordIntake = (id: string, amount: number, note?: string) => {
+    const medication = medications.find(med => med.id === id);
+    recordIntake(id, amount, note);
+    toast({
+      title: "Einnahme erfasst ✓",
+      description: `${medication?.name}: ${amount} Tablette${amount !== 1 ? 'n' : ''} entnommen${note ? ` (${note})` : ''}.`,
     });
   };
 
@@ -220,6 +229,8 @@ const Index = () => {
                 onDelete={handleDeleteMedication}
                 onUpdateAmount={handleUpdateAmount}
                 onUpdateMedication={handleUpdateMedication}
+                onRecordIntake={handleRecordIntake}
+                lastIntake={getLastIntake(medication)}
               />
             ))}
           </div>

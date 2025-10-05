@@ -1,3 +1,9 @@
+export interface IntakeLog {
+  date: Date;
+  amount: number;
+  note?: string;
+}
+
 export interface Medication {
   id: string;
   name: string;
@@ -11,8 +17,9 @@ export interface Medication {
   reminderThresholdDays: number;
   createdAt: Date;
   lastRefilled?: Date;
-  manualInfoOverride?: boolean; // Deaktiviert automatische PZN-Suche
-  personalNotes?: string; // Persönliche Notizen
+  manualInfoOverride?: boolean;
+  personalNotes?: string;
+  intakeLog?: IntakeLog[]; // Einnahme-Historie für "Bei Bedarf" Medikamente
 }
 
 export interface MedicationFormData {
