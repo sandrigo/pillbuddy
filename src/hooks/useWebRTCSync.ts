@@ -27,6 +27,8 @@ export const useWebRTCSync = () => {
   const dataChannel = useRef<RTCDataChannel | null>(null);
   const sessionId = useRef<string>('');
   const timerInterval = useRef<number>();
+  const pollInterval = useRef<number>();
+  const realtimeChannel = useRef<any>(null);
 
   // Cleanup function
   const cleanup = useCallback(() => {
@@ -40,6 +42,15 @@ export const useWebRTCSync = () => {
     }
     if (timerInterval.current) {
       clearInterval(timerInterval.current);
+      timerInterval.current = undefined;
+    }
+    if (pollInterval.current) {
+      clearInterval(pollInterval.current);
+      pollInterval.current = undefined;
+    }
+    if (realtimeChannel.current) {
+      realtimeChannel.current.unsubscribe();
+      realtimeChannel.current = null;
     }
     sessionId.current = '';
   }, []);
@@ -172,7 +183,7 @@ export const useWebRTCSync = () => {
       }, 1000);
 
       // Listen for answer via Realtime
-      const channel = supabase
+      realtimeChannel.current = supabase
         .channel(`sync-${session.id}`)
         .on(
           'postgres_changes',
@@ -185,7 +196,7 @@ export const useWebRTCSync = () => {
           async (payload) => {
             const updatedSession = payload.new as SyncSession;
             
-            if (updatedSession.answer && peerConnection.current) {
+            if (updatedSession.answer && peerConnection.current && !peerConnection.current.remoteDescription) {
               setStatus('connecting');
               await peerConnection.current.setRemoteDescription(
                 new RTCSessionDescription(updatedSession.answer)
@@ -199,13 +210,19 @@ export const useWebRTCSync = () => {
                   );
                 }
               }
+              
+              // Stop polling once we got the answer
+              if (pollInterval.current) {
+                clearInterval(pollInterval.current);
+                pollInterval.current = undefined;
+              }
             }
           }
         )
         .subscribe();
 
       // Fallback: Poll for updates every 2 seconds (in case Realtime isn't enabled)
-      const pollInterval = setInterval(async () => {
+      pollInterval.current = window.setInterval(async () => {
         try {
           const { data: updatedSession } = await (supabase as any)
             .from('sync_sessions')
@@ -227,17 +244,17 @@ export const useWebRTCSync = () => {
                 );
               }
             }
-            clearInterval(pollInterval);
+            
+            // Stop polling once we got the answer
+            if (pollInterval.current) {
+              clearInterval(pollInterval.current);
+              pollInterval.current = undefined;
+            }
           }
         } catch (err) {
           console.error('Polling error:', err);
         }
       }, 2000);
-
-      return () => {
-        channel.unsubscribe();
-        clearInterval(pollInterval);
-      };
     } catch (err) {
       console.error('Error starting sender:', err);
       setError('Fehler beim Starten der Übertragung');
@@ -331,8 +348,8 @@ export const useWebRTCSync = () => {
         }
       }
 
-      // Listen for new ICE candidates
-      const channel = supabase
+      // Listen for new ICE candidates (not used with complete gathering, but kept for compatibility)
+      realtimeChannel.current = supabase
         .channel(`sync-${session.id}`)
         .on(
           'postgres_changes',
@@ -360,9 +377,9 @@ export const useWebRTCSync = () => {
         )
         .subscribe();
 
-      // Fallback: Poll for ICE candidate updates every 2 seconds
+      // Fallback: Poll for sender's ICE candidates every 2 seconds
       let lastCandidateCount = session.ice_candidates?.length || 0;
-      const pollInterval = setInterval(async () => {
+      pollInterval.current = window.setInterval(async () => {
         try {
           const { data: updatedSession } = await (supabase as any)
             .from('sync_sessions')
@@ -372,6 +389,7 @@ export const useWebRTCSync = () => {
 
           if (updatedSession?.ice_candidates && updatedSession.ice_candidates.length > lastCandidateCount) {
             const newCandidates = updatedSession.ice_candidates.slice(lastCandidateCount);
+            console.log(`receiver: Adding ${newCandidates.length} new ICE candidates from sender`);
             for (const candidate of newCandidates) {
               try {
                 if (peerConnection.current) {
@@ -389,11 +407,6 @@ export const useWebRTCSync = () => {
           console.error('Polling error:', err);
         }
       }, 2000);
-
-      return () => {
-        channel.unsubscribe();
-        clearInterval(pollInterval);
-      };
     } catch (err: any) {
       console.error('Error starting receiver:', err);
       setError(err.message || 'Fehler beim Verbinden');
