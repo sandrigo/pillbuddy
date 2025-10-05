@@ -54,6 +54,7 @@ export const useWebRTCSync = () => {
       realtimeChannel.current = null;
     }
     sessionId.current = '';
+    answerProcessed.current = false; // Reset flag
   }, []);
 
   // Initialize WebRTC peer connection
