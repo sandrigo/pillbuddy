@@ -5,6 +5,7 @@ import { useEmailNotifications } from '@/hooks/useEmailNotifications';
 import { MedicationCard } from '@/components/MedicationCard';
 import { MedicationForm } from '@/components/MedicationForm';
 import { EmailNotificationSettings } from '@/components/EmailNotificationSettings';
+import { PillsEasterEgg } from '@/components/PillsEasterEgg';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -22,9 +23,22 @@ const Index = () => {
   const [showForm, setShowForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'stocked' | 'refill'>('all');
+  const [logoClickCount, setLogoClickCount] = useState(0);
+  const [showEasterEgg, setShowEasterEgg] = useState(false);
   const { medications, addMedication, deleteMedication, updateMedication, updateCurrentAmount, getDaysRemaining, needsRefill, recordIntake, getLastIntake } = useMedications();
   const { toast } = useToast();
   const formInputRef = useRef<HTMLInputElement>(null);
+
+  const handleLogoClick = () => {
+    setLogoClickCount((prev) => {
+      const newCount = prev + 1;
+      if (newCount === 7) {
+        setShowEasterEgg(true);
+        return 0; // Reset counter
+      }
+      return newCount;
+    });
+  };
 
   const handleAddMedication = (data: any) => {
     addMedication(data);
@@ -132,7 +146,8 @@ const Index = () => {
               <img 
                 src={pillbuddyLogo} 
                 alt="PillBuddy Logo" 
-                className="w-10 h-10 rounded-full shadow-gentle"
+                onClick={handleLogoClick}
+                className="w-10 h-10 rounded-full shadow-gentle cursor-pointer hover:scale-110 transition-transform"
               />
               <h1 className="text-2xl font-bold text-foreground">PillBuddy</h1>
             </div>
@@ -282,6 +297,12 @@ const Index = () => {
       
       {/* Bottom Navigation */}
       <BottomNavigation />
+
+      {/* Easter Egg - Bouncing Pills */}
+      <PillsEasterEgg 
+        active={showEasterEgg} 
+        onComplete={() => setShowEasterEgg(false)} 
+      />
     </div>
   );
 };
