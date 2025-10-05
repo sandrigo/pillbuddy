@@ -1,5 +1,30 @@
 # PillBuddy
 
+v1.2 Changes 05.10.2025
+# PillBuddy - Neu: "Bei Bedarf" Medikamente
+## Was ist das?
+Für Medikamente, die du nicht regelmäßig nimmst (z.B. Schmerztabletten bei Kopfweh).
+## So geht's:
+
+Beim Hinzufügen:
+**Wähle bei "Einnahmeintervall" → "Bei Bedarf"**
+
+## Wenn du es einnimmst:
+- Drücke den grünen Button "Einnahme erfassen"
+- Gib die Anzahl ein (z.B. "1")
+- Fertig! Der Vorrat wird abgezogen
+
+## Was du siehst:
+"Letzter Gebrauch: vor 2 Tagen"
+Aktueller Vorrat
+## Neue Historie:
+Tippe auf das Medikament
+Unter "Einnahme-Historie" siehst du alle Einnahmen
+Mit Datum und Uhrzeit
+
+Deine normalen Tabletten (täglich) zählen weiter automatisch runter - da ändert sich nichts!
+
+
 V1.1 Changes 04.10.2025: 
 ### 1. Header kompakter (80px statt 200px)
 
