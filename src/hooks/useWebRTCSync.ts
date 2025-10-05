@@ -30,6 +30,7 @@ export const useWebRTCSync = () => {
   const pollInterval = useRef<number>();
   const realtimeChannel = useRef<any>(null);
   const answerProcessed = useRef<boolean>(false);
+  const transferCompleted = useRef<boolean>(false);
 
   // Cleanup function
   const cleanup = useCallback(() => {
@@ -55,6 +56,7 @@ export const useWebRTCSync = () => {
     }
     sessionId.current = '';
     answerProcessed.current = false;
+    transferCompleted.current = false;
   }, []);
 
   // Initialize WebRTC peer connection
@@ -70,7 +72,7 @@ export const useWebRTCSync = () => {
 
     // Send ICE candidates immediately (trickle ICE)
     pc.onicecandidate = async (event) => {
-      if (event.candidate && sessionId.current) {
+      if (event.candidate && sessionId.current && !transferCompleted.current) {
         console.log(`${role}: New ICE candidate`);
         try {
           // Get current candidates
@@ -79,6 +81,12 @@ export const useWebRTCSync = () => {
             .select('ice_candidates')
             .eq('id', sessionId.current)
             .single();
+          
+          // Session might have been deleted already
+          if (!currentSession) {
+            console.log(`${role}: Session already deleted, skipping ICE candidate`);
+            return;
+          }
           
           const existingCandidates = currentSession?.ice_candidates || [];
           const candidateJson = event.candidate.toJSON();
@@ -93,7 +101,10 @@ export const useWebRTCSync = () => {
           
           console.log(`${role}: ICE candidate sent`);
         } catch (err) {
-          console.error('Error saving ICE candidate:', err);
+          // Ignore errors if session was already deleted
+          if (!transferCompleted.current) {
+            console.error('Error saving ICE candidate:', err);
+          }
         }
       }
     };
@@ -142,6 +153,9 @@ export const useWebRTCSync = () => {
         
         setProgress(100);
         
+        // Mark transfer as completed to stop sending ICE candidates
+        transferCompleted.current = true;
+        
         // Delete session after successful transfer
         try {
           if (sessionId.current) {
@@ -162,6 +176,10 @@ export const useWebRTCSync = () => {
       };
 
       dataChannel.current.onerror = (error) => {
+        // Ignore "User-Initiated Abort" errors after successful transfer
+        if (transferCompleted.current) {
+          return;
+        }
         console.error('Data channel error:', error);
         setError('Datenübertragung fehlgeschlagen');
         setStatus('error');
@@ -374,6 +392,9 @@ export const useWebRTCSync = () => {
             const medications = JSON.parse(e.data);
             setProgress(100);
             
+            // Mark transfer as completed to stop sending ICE candidates
+            transferCompleted.current = true;
+            
             // Delete session after successful transfer
             try {
               if (sessionId.current) {
@@ -400,6 +421,10 @@ export const useWebRTCSync = () => {
         };
 
         dataChannel.current.onerror = (error) => {
+          // Ignore "User-Initiated Abort" errors after successful transfer
+          if (transferCompleted.current) {
+            return;
+          }
           console.error('Data channel error:', error);
           setError('Datenübertragung fehlgeschlagen');
           setStatus('error');
