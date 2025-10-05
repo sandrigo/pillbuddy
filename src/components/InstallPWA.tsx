@@ -113,7 +113,7 @@ export const InstallPWA = () => {
           <div className="flex-1">
             <h3 className="font-semibold text-sm mb-1">📱 PillBuddy App installieren</h3>
             <p className="text-xs text-muted-foreground">
-              Schneller Zugriff und Benachrichtigungen
+              Schneller Zugriff und Push-Benachrichtigungen
             </p>
           </div>
           <div className="flex gap-2">

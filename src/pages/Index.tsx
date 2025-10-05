@@ -204,7 +204,7 @@ const Index = () => {
             </div>
             <h3 className="text-lg font-semibold mb-2">Willkommen bei PillBuddy!</h3>
             <p className="text-muted-foreground mb-4 max-w-md mx-auto">
-              Fügen Sie Ihr erstes Medikament hinzu, um mit der sanften Verwaltung Ihrer Gesundheit zu beginnen.
+              Fügen Sie Ihr erstes Medikament hinzu, um mit der smarten Verwaltung Ihrer Gesundheit zu beginnen.
             </p>
             <Button 
               onClick={() => setShowForm(true)}

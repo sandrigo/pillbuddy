@@ -202,7 +202,7 @@ export const MedicationCard = ({ medication, daysRemaining, needsRefill, onDelet
                 ) : (
                   <Calendar className="h-5 w-5 text-success" />
                 )}
-                <span className="text-2xl font-bold">
+                <span className="tracking-tight text-lg font-semibold">
                   Vorrat für {daysRemaining} Tag{daysRemaining !== 1 ? 'e' : ''}
                 </span>
               </div>
