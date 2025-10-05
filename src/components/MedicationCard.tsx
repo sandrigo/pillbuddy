@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
-import { Trash2, Pill, Calendar, AlertCircle, Edit3, Check, X, Settings, CalendarDays, StickyNote, ChevronDown, ChevronUp, CheckCircle } from 'lucide-react';
+import { Trash2, Pill, Calendar, AlertCircle, Edit3, Check, X, Settings, CalendarDays, StickyNote, ChevronDown, ChevronUp, CheckCircle, History } from 'lucide-react';
 import { MedicationEditForm } from './MedicationEditForm';
 import { IntakeDialog } from './IntakeDialog';
 import { Medication } from '@/types/medication';
@@ -37,6 +37,7 @@ export const MedicationCard = ({ medication, daysRemaining, needsRefill, onDelet
   const [isEditingMedication, setIsEditingMedication] = useState(false);
   const [showMedicationInfo, setShowMedicationInfo] = useState(false);
   const [showIntakeDialog, setShowIntakeDialog] = useState(false);
+  const [showIntakeHistory, setShowIntakeHistory] = useState(false);
   const [editAmount, setEditAmount] = useState(medication.currentAmount);
 
   const isAsNeeded = medication.interval === 'as-needed';
@@ -155,7 +156,7 @@ export const MedicationCard = ({ medication, daysRemaining, needsRefill, onDelet
             <div className="flex items-center gap-2">
               <Pill className="h-5 w-5 text-primary" />
               <span className="text-lg font-bold">
-                💊 Vorrat: {medication.currentAmount} Tablette{medication.currentAmount !== 1 ? 'n' : ''}
+                Vorrat: {medication.currentAmount} Tablette{medication.currentAmount !== 1 ? 'n' : ''}
               </span>
             </div>
             <Badge variant="outline" className="border-primary/30 bg-primary/10 text-primary w-full justify-center py-1.5">
@@ -319,6 +320,46 @@ export const MedicationCard = ({ medication, daysRemaining, needsRefill, onDelet
             <p className="text-xs text-accent-foreground">{medication.personalNotes}</p>
           </div>
         )}
+
+        {/* Einnahme-Historie für "Bei Bedarf" Medikamente */}
+        {isAsNeeded && medication.intakeLog && medication.intakeLog.length > 0 && (
+          <div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowIntakeHistory(!showIntakeHistory)}
+              className="w-full justify-between text-primary hover:bg-primary/5"
+            >
+              <span className="font-semibold flex items-center gap-2">
+                <History className="h-4 w-4" />
+                📋 Einnahme-Historie
+              </span>
+              {showIntakeHistory ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </Button>
+            {showIntakeHistory && (
+              <div className="mt-2 p-3 bg-muted/30 rounded-lg border space-y-2">
+                {medication.intakeLog
+                  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                  .slice(0, showIntakeHistory ? undefined : 3)
+                  .map((log, index) => (
+                    <div key={index} className="text-sm pb-2 border-b last:border-b-0">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <p className="font-medium">
+                            {getRelativeTimeString(new Date(log.date))} - {log.amount} Tablette{log.amount !== 1 ? 'n' : ''}
+                          </p>
+                          {log.note && (
+                            <p className="text-xs text-muted-foreground italic mt-1">"{log.note}"</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {needsRefill && !isAsNeeded && (
           <Badge variant="outline" className="border-warning text-warning-foreground w-full justify-center py-2">
             Nachschub benötigt
