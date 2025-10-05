@@ -126,7 +126,7 @@ export const useWebRTCSync = () => {
         ordered: true,
       });
 
-      dataChannel.current.onopen = () => {
+      dataChannel.current.onopen = async () => {
         console.log('Data channel opened');
         setStatus('transferring');
         
@@ -135,6 +135,20 @@ export const useWebRTCSync = () => {
         dataChannel.current?.send(dataStr);
         
         setProgress(100);
+        
+        // Delete session after successful transfer
+        try {
+          if (sessionId.current) {
+            await (supabase as any)
+              .from('sync_sessions')
+              .delete()
+              .eq('id', sessionId.current);
+            console.log('sender: Session deleted after transfer');
+          }
+        } catch (err) {
+          console.error('Error deleting session:', err);
+        }
+        
         setTimeout(() => {
           setStatus('completed');
           cleanup();
@@ -341,11 +355,24 @@ export const useWebRTCSync = () => {
       peerConnection.current.ondatachannel = (event) => {
         dataChannel.current = event.channel;
         
-        dataChannel.current.onmessage = (e) => {
+        dataChannel.current.onmessage = async (e) => {
           try {
             setStatus('transferring');
             const medications = JSON.parse(e.data);
             setProgress(100);
+            
+            // Delete session after successful transfer
+            try {
+              if (sessionId.current) {
+                await (supabase as any)
+                  .from('sync_sessions')
+                  .delete()
+                  .eq('id', sessionId.current);
+                console.log('receiver: Session deleted after transfer');
+              }
+            } catch (err) {
+              console.error('Error deleting session:', err);
+            }
             
             setTimeout(() => {
               onDataReceived(medications);
