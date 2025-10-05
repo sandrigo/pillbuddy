@@ -45,7 +45,7 @@ export const useWebRTCSync = () => {
   }, []);
 
   // Initialize WebRTC peer connection
-  const createPeerConnection = useCallback(() => {
+  const createPeerConnection = useCallback((role: 'sender' | 'receiver') => {
     const configuration: RTCConfiguration = {
       iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
@@ -54,27 +54,29 @@ export const useWebRTCSync = () => {
     };
 
     const pc = new RTCPeerConnection(configuration);
+    const collectedCandidates: RTCIceCandidateInit[] = [];
 
-    pc.onicecandidate = async (event) => {
-      if (event.candidate && sessionId.current) {
+    // Collect all ICE candidates
+    pc.onicecandidate = (event) => {
+      if (event.candidate) {
+        collectedCandidates.push(event.candidate.toJSON());
+      }
+    };
+
+    // When gathering is complete, save all candidates at once
+    pc.onicegatheringstatechange = async () => {
+      if (pc.iceGatheringState === 'complete' && sessionId.current && collectedCandidates.length > 0) {
+        console.log(`${role}: ICE gathering complete, saving ${collectedCandidates.length} candidates`);
         try {
-          const { data: session } = await (supabase as any)
+          await (supabase as any)
             .from('sync_sessions')
-            .select('ice_candidates')
-            .eq('id', sessionId.current)
-            .single();
-
-          if (session) {
-            const candidates = session.ice_candidates || [];
-            await (supabase as any)
-              .from('sync_sessions')
-              .update({
-                ice_candidates: [...candidates, event.candidate.toJSON()]
-              })
-              .eq('id', sessionId.current);
-          }
+            .update({
+              ice_candidates: collectedCandidates
+            })
+            .eq('id', sessionId.current);
+          console.log(`${role}: Candidates saved successfully`);
         } catch (err) {
-          console.error('Error saving ICE candidate:', err);
+          console.error('Error saving ICE candidates:', err);
         }
       }
     };
@@ -104,7 +106,7 @@ export const useWebRTCSync = () => {
       setPairingCode(code);
 
       // Create peer connection
-      peerConnection.current = createPeerConnection();
+      peerConnection.current = createPeerConnection('sender');
 
       // Create data channel
       dataChannel.current = peerConnection.current.createDataChannel('medications', {
@@ -269,7 +271,7 @@ export const useWebRTCSync = () => {
       sessionId.current = session.id;
 
       // Create peer connection
-      peerConnection.current = createPeerConnection();
+      peerConnection.current = createPeerConnection('receiver');
 
       // Handle incoming data channel
       peerConnection.current.ondatachannel = (event) => {
