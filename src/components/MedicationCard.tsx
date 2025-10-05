@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -39,8 +39,21 @@ export const MedicationCard = ({ medication, daysRemaining, needsRefill, onDelet
   const [showIntakeDialog, setShowIntakeDialog] = useState(false);
   const [showIntakeHistory, setShowIntakeHistory] = useState(false);
   const [editAmount, setEditAmount] = useState(medication.currentAmount);
+  const [isExpanded, setIsExpanded] = useState(() => {
+    const saved = localStorage.getItem(`med-expanded-${medication.id}`);
+    return saved === null ? true : saved === 'true';
+  });
 
   const isAsNeeded = medication.interval === 'as-needed';
+
+  // Save expansion state to localStorage
+  useEffect(() => {
+    localStorage.setItem(`med-expanded-${medication.id}`, isExpanded.toString());
+  }, [isExpanded, medication.id]);
+
+  const toggleExpanded = () => {
+    setIsExpanded(!isExpanded);
+  };
 
   const handleSaveAmount = () => {
     if (editAmount > 0) {
@@ -119,42 +132,89 @@ export const MedicationCard = ({ medication, daysRemaining, needsRefill, onDelet
   return (
     <Card className={`shadow-gentle hover:shadow-soft transition-all duration-200 border-l-4 ${getBorderColor()} ${needsRefill ? 'border-warning/30 bg-warning/5' : ''}`}>
       <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-primary/10">
+        <div className="flex items-start justify-between gap-2">
+          <div 
+            className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={toggleExpanded}
+          >
+            <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
               <Pill className="h-4 w-4 text-primary" />
             </div>
-            <div>
+            <div className="flex-1 min-w-0">
               <CardTitle className="text-lg font-semibold">{medication.name}</CardTitle>
               {medication.pzn && (
                 <p className="text-xs text-muted-foreground">PZN: {medication.pzn}</p>
               )}
             </div>
           </div>
-          <div className="flex gap-1">
+          {/* Nur Auf-/Zuklapp-Button */}
+          <div className="flex-shrink-0">
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setIsEditingMedication(true)}
-              className="text-muted-foreground hover:text-primary"
+              onClick={toggleExpanded}
+              className="text-muted-foreground hover:text-primary h-9 w-9 p-0"
+              aria-label={isExpanded ? "Einklappen" : "Ausklappen"}
             >
-              <Settings className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onDelete(medication.id)}
-              className="text-muted-foreground hover:text-destructive"
-            >
-              <Trash2 className="h-4 w-4" />
+              {isExpanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
             </Button>
           </div>
         </div>
       </CardHeader>
       
       <CardContent className="space-y-4">
-        {/* Prominente Anzeige - unterschiedlich für "Bei Bedarf" vs regulär */}
-        {isAsNeeded ? (
+        {/* Kompaktansicht - nur wenn NICHT aufgeklappt */}
+        {!isExpanded && (
+          <>
+            {isAsNeeded ? (
+              // Kompaktansicht für "Bei Bedarf" Medikamente
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-muted-foreground">Vorrat:</span>
+                  <span className="font-semibold">{medication.currentAmount} Tablette{medication.currentAmount !== 1 ? 'n' : ''}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-muted-foreground">Letzte Einnahme:</span>
+                  <span className="font-medium">
+                    {lastIntake ? getRelativeTimeString(lastIntake) : 'Noch nicht verwendet'}
+                  </span>
+                </div>
+                <Button 
+                  onClick={() => setShowIntakeDialog(true)}
+                  className="w-full bg-success hover:bg-success/90 text-white"
+                  disabled={medication.currentAmount === 0}
+                >
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Einnahme erfassen
+                </Button>
+              </div>
+            ) : (
+              // Kompaktansicht für reguläre Medikamente
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-muted-foreground">Vorrat für:</span>
+                  <span className="font-semibold">{daysRemaining} Tag{daysRemaining !== 1 ? 'e' : ''}</span>
+                </div>
+                <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                  <div 
+                    className={`h-full transition-all ${getProgressColor()}`}
+                    style={{ width: `${getProgressPercentage()}%` }}
+                  />
+                </div>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span>Leer am:</span>
+                  <span>{getZeroDate()}</span>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Erweiterte Ansicht - nur wenn isExpanded */}
+        {isExpanded && (
+          <>
+            {/* Prominente Anzeige - unterschiedlich für "Bei Bedarf" vs regulär */}
+            {isAsNeeded ? (
           <div className="bg-primary/5 rounded-lg p-4 space-y-3">
             <div className="flex items-center gap-2">
               <Pill className="h-5 w-5 text-primary" />
@@ -277,39 +337,27 @@ export const MedicationCard = ({ medication, daysRemaining, needsRefill, onDelet
           <span className="font-medium">{getIntervalText(medication.interval)}</span>
         </div>
         
-        {/* Medikamenteninfo - Eingeklappt */}
+        {/* Medikamenteninfo - immer ausgeklappt wenn vorhanden */}
         {(medication.description || medication.activeIngredient || medication.indication) && (
-          <div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowMedicationInfo(!showMedicationInfo)}
-              className="w-full justify-between text-primary hover:bg-primary/5"
-            >
-              <span className="font-semibold">Medikamenteninfo</span>
-              {showMedicationInfo ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-            </Button>
-            {showMedicationInfo && (
-              <div className="mt-2 p-3 bg-muted/30 rounded-lg border">
-                <div className="space-y-1 text-xs">
-                  {medication.activeIngredient && (
-                    <div>
-                      <span className="font-medium">Wirkstoff:</span> {medication.activeIngredient}
-                    </div>
-                  )}
-                  {medication.indication && (
-                    <div>
-                      <span className="font-medium">Anwendung:</span> {medication.indication}
-                    </div>
-                  )}
-                  {medication.description && (
-                    <div>
-                      <span className="font-medium">Beschreibung:</span> {medication.description}
-                    </div>
-                  )}
+          <div className="p-3 bg-muted/30 rounded-lg border">
+            <h4 className="text-sm font-semibold mb-2 text-foreground">Medikamenteninfo</h4>
+            <div className="space-y-1 text-xs">
+              {medication.activeIngredient && (
+                <div>
+                  <span className="font-medium">Wirkstoff:</span> {medication.activeIngredient}
                 </div>
-              </div>
-            )}
+              )}
+              {medication.indication && (
+                <div>
+                  <span className="font-medium">Anwendung:</span> {medication.indication}
+                </div>
+              )}
+              {medication.description && (
+                <div>
+                  <span className="font-medium">Beschreibung:</span> {medication.description}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -363,10 +411,34 @@ export const MedicationCard = ({ medication, daysRemaining, needsRefill, onDelet
           </div>
         )}
 
-        {needsRefill && !isAsNeeded && (
-          <Badge variant="outline" className="border-warning text-warning-foreground w-full justify-center py-2">
-            Nachschub benötigt
-          </Badge>
+            {needsRefill && !isAsNeeded && (
+              <Badge variant="outline" className="border-warning text-warning-foreground w-full justify-center py-2">
+                Nachschub benötigt
+              </Badge>
+            )}
+
+            {/* Action Buttons - Nur in Vollansicht am unteren Rand */}
+            <div className="flex justify-end gap-2 pt-3 mt-3 border-t border-border/30">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsEditingMedication(true)}
+                className="text-muted-foreground hover:text-primary hover:border-primary"
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Bearbeiten
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onDelete(medication.id)}
+                className="text-muted-foreground hover:text-destructive hover:border-destructive"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Löschen
+              </Button>
+            </div>
+          </>
         )}
       </CardContent>
 

@@ -21,6 +21,7 @@ const Index = () => {
   const location = useLocation();
   const [showForm, setShowForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'stocked' | 'refill'>('all');
   const { medications, addMedication, deleteMedication, updateMedication, updateCurrentAmount, getDaysRemaining, needsRefill, recordIntake, getLastIntake } = useMedications();
   const { toast } = useToast();
   const formInputRef = useRef<HTMLInputElement>(null);
@@ -71,10 +72,23 @@ const Index = () => {
     });
   };
 
-  const filteredMedications = medications.filter(med => 
+  // Apply filters
+  let filteredMedications = medications.filter(med => 
     med.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
-  const refillNeeded = filteredMedications.filter(med => needsRefill(med));
+
+  // Apply status filter
+  if (statusFilter === 'stocked') {
+    filteredMedications = filteredMedications.filter(med => !needsRefill(med));
+  } else if (statusFilter === 'refill') {
+    filteredMedications = filteredMedications.filter(med => needsRefill(med));
+  }
+
+  const refillNeeded = medications.filter(med => needsRefill(med));
+
+  const handleFilterClick = (filter: 'all' | 'stocked' | 'refill') => {
+    setStatusFilter(statusFilter === filter ? 'all' : filter);
+  };
 
   // Auto-check for PWA notifications
   useEffect(() => {
@@ -135,18 +149,33 @@ const Index = () => {
       </header>
 
       <main className="container mx-auto px-4 py-6 pb-24 space-y-6">
-        {/* Stats */}
+        {/* Stats - Klickbar zum Filtern */}
         {medications.length > 0 && (
           <div className="grid grid-cols-3 gap-3">
-            <div className="bg-card rounded-lg p-5 shadow-gentle border border-border/50">
+            <div 
+              onClick={() => handleFilterClick('all')}
+              className={`bg-card rounded-lg p-5 shadow-gentle border cursor-pointer transition-all duration-200 hover:shadow-md active:scale-95 ${
+                statusFilter === 'all' ? 'border-primary border-2 ring-2 ring-primary/20' : 'border-border/50 hover:border-primary/50'
+              }`}
+            >
               <div className="text-2xl font-bold text-primary">{medications.length}</div>
               <div className="text-xs text-muted-foreground">Gesamt</div>
             </div>
-            <div className="bg-card rounded-lg p-5 shadow-gentle border border-border/50">
+            <div 
+              onClick={() => handleFilterClick('stocked')}
+              className={`bg-card rounded-lg p-5 shadow-gentle border cursor-pointer transition-all duration-200 hover:shadow-md active:scale-95 ${
+                statusFilter === 'stocked' ? 'border-success border-2 ring-2 ring-success/20' : 'border-border/50 hover:border-success/50'
+              }`}
+            >
               <div className="text-2xl font-bold text-success">{medications.length - refillNeeded.length}</div>
               <div className="text-xs text-muted-foreground">Vorrätig</div>
             </div>
-            <div className="bg-card rounded-lg p-5 shadow-gentle border border-border/50">
+            <div 
+              onClick={() => handleFilterClick('refill')}
+              className={`bg-card rounded-lg p-5 shadow-gentle border cursor-pointer transition-all duration-200 hover:shadow-md active:scale-95 ${
+                statusFilter === 'refill' ? 'border-warning border-2 ring-2 ring-warning/20' : 'border-border/50 hover:border-warning/50'
+              }`}
+            >
               <div className="text-2xl font-bold text-warning">{refillNeeded.length}</div>
               <div className="text-xs text-muted-foreground">Nachschub</div>
             </div>
@@ -219,19 +248,20 @@ const Index = () => {
             <p className="text-muted-foreground">Keine Medikamente gefunden für "{searchTerm}"</p>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-6 transition-all duration-300">
             {filteredMedications.map((medication) => (
-              <MedicationCard
-                key={medication.id}
-                medication={medication}
-                daysRemaining={getDaysRemaining(medication)}
-                needsRefill={needsRefill(medication)}
-                onDelete={handleDeleteMedication}
-                onUpdateAmount={handleUpdateAmount}
-                onUpdateMedication={handleUpdateMedication}
-                onRecordIntake={handleRecordIntake}
-                lastIntake={getLastIntake(medication)}
-              />
+              <div key={medication.id} className="animate-in fade-in slide-in-from-top-2 duration-200">
+                <MedicationCard
+                  medication={medication}
+                  daysRemaining={getDaysRemaining(medication)}
+                  needsRefill={needsRefill(medication)}
+                  onDelete={handleDeleteMedication}
+                  onUpdateAmount={handleUpdateAmount}
+                  onUpdateMedication={handleUpdateMedication}
+                  onRecordIntake={handleRecordIntake}
+                  lastIntake={getLastIntake(medication)}
+                />
+              </div>
             ))}
           </div>
         )}
