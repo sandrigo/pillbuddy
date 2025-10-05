@@ -108,12 +108,7 @@ export const useWebRTCSync = () => {
   // Start as sender (share data)
   const startSender = useCallback(async (medications: Medication[]) => {
     try {
-      // Ensure complete cleanup before starting
       cleanup();
-      
-      // Wait a bit for cleanup to complete
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
       setStatus('generating-code');
       setError('');
       setProgress(0);
@@ -309,12 +304,7 @@ export const useWebRTCSync = () => {
     onDataReceived: (medications: Medication[]) => void
   ) => {
     try {
-      // Ensure complete cleanup before starting
       cleanup();
-      
-      // Wait a bit for cleanup to complete
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
       setStatus('connecting');
       setError('');
       setProgress(0);
