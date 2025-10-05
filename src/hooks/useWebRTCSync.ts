@@ -108,7 +108,12 @@ export const useWebRTCSync = () => {
   // Start as sender (share data)
   const startSender = useCallback(async (medications: Medication[]) => {
     try {
+      // Ensure complete cleanup before starting
       cleanup();
+      
+      // Wait a bit for cleanup to complete
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       setStatus('generating-code');
       setError('');
       setProgress(0);
@@ -165,6 +170,7 @@ export const useWebRTCSync = () => {
       }
 
       sessionId.current = session.id;
+      const currentSessionId = session.id;
       setStatus('waiting');
 
       // Start countdown timer
@@ -194,20 +200,36 @@ export const useWebRTCSync = () => {
             filter: `id=eq.${session.id}`,
           },
           async (payload) => {
+            // Only proceed if this is still the current session
+            if (sessionId.current !== currentSessionId) {
+              return;
+            }
+            
             const updatedSession = payload.new as SyncSession;
             
-            if (updatedSession.answer && peerConnection.current && !peerConnection.current.remoteDescription) {
+            if (updatedSession.answer && peerConnection.current && 
+                !peerConnection.current.remoteDescription &&
+                peerConnection.current.signalingState === 'have-local-offer') {
+              
+              console.log('sender: Setting remote answer from realtime');
               setStatus('connecting');
-              await peerConnection.current.setRemoteDescription(
-                new RTCSessionDescription(updatedSession.answer)
-              );
+              
+              try {
+                await peerConnection.current.setRemoteDescription(
+                  new RTCSessionDescription(updatedSession.answer)
+                );
 
-              // Add ICE candidates
-              if (updatedSession.ice_candidates) {
-                for (const candidate of updatedSession.ice_candidates) {
-                  await peerConnection.current.addIceCandidate(
-                    new RTCIceCandidate(candidate)
-                  );
+                // Add ICE candidates
+                if (updatedSession.ice_candidates) {
+                  for (const candidate of updatedSession.ice_candidates) {
+                    await peerConnection.current.addIceCandidate(
+                      new RTCIceCandidate(candidate)
+                    );
+                  }
+                }
+              } catch (err: any) {
+                if (!err.message?.includes('stable')) {
+                  console.error('Error setting remote description:', err);
                 }
               }
               
@@ -223,25 +245,45 @@ export const useWebRTCSync = () => {
 
       // Fallback: Poll for updates every 2 seconds (in case Realtime isn't enabled)
       pollInterval.current = window.setInterval(async () => {
+        // Only proceed if this is still the current session
+        if (sessionId.current !== currentSessionId) {
+          if (pollInterval.current) {
+            clearInterval(pollInterval.current);
+            pollInterval.current = undefined;
+          }
+          return;
+        }
+        
         try {
           const { data: updatedSession } = await (supabase as any)
             .from('sync_sessions')
             .select('*')
-            .eq('id', session.id)
+            .eq('id', currentSessionId)
             .single();
 
-          if (updatedSession?.answer && peerConnection.current && !peerConnection.current.remoteDescription) {
+          if (updatedSession?.answer && peerConnection.current && 
+              !peerConnection.current.remoteDescription &&
+              peerConnection.current.signalingState === 'have-local-offer') {
+            
+            console.log('sender: Setting remote answer from polling');
             setStatus('connecting');
-            await peerConnection.current.setRemoteDescription(
-              new RTCSessionDescription(updatedSession.answer)
-            );
+            
+            try {
+              await peerConnection.current.setRemoteDescription(
+                new RTCSessionDescription(updatedSession.answer)
+              );
 
-            // Add ICE candidates
-            if (updatedSession.ice_candidates) {
-              for (const candidate of updatedSession.ice_candidates) {
-                await peerConnection.current.addIceCandidate(
-                  new RTCIceCandidate(candidate)
-                );
+              // Add ICE candidates
+              if (updatedSession.ice_candidates) {
+                for (const candidate of updatedSession.ice_candidates) {
+                  await peerConnection.current.addIceCandidate(
+                    new RTCIceCandidate(candidate)
+                  );
+                }
+              }
+            } catch (err: any) {
+              if (!err.message?.includes('stable')) {
+                console.error('Error setting remote description:', err);
               }
             }
             
@@ -269,7 +311,12 @@ export const useWebRTCSync = () => {
     onDataReceived: (medications: Medication[]) => void
   ) => {
     try {
+      // Ensure complete cleanup before starting
       cleanup();
+      
+      // Wait a bit for cleanup to complete
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       setStatus('connecting');
       setError('');
       setProgress(0);
