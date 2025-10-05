@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pillbuddy-v3';
+const CACHE_NAME = 'pillbuddy-v4';
 const OFFLINE_URL = '/offline.html';
 
 const STATIC_ASSETS = [
@@ -58,6 +58,12 @@ self.addEventListener('fetch', (event) => {
 
   // Skip chrome-extension and other non-http(s) requests
   if (!event.request.url.startsWith('http')) return;
+
+  // NEVER cache Supabase API requests (for real-time sync)
+  if (event.request.url.includes('supabase.co')) {
+    console.log('[SW] Bypassing cache for Supabase:', event.request.url);
+    return; // Let it pass through to network
+  }
 
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
