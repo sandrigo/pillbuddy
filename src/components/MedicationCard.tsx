@@ -66,6 +66,9 @@ export const MedicationCard = ({ medication, daysRemaining, needsRefill, onDelet
   };
 
   const getBorderColor = () => {
+    // Bei Bedarf Medikamente in hellem Blau - Resttage sind hier nicht relevant
+    if (medication.interval === 'as-needed') return 'border-l-blue-400';
+    
     if (daysRemaining <= 3) return 'border-l-red-500';
     if (daysRemaining <= 7) return 'border-l-orange-500';
     if (daysRemaining <= 14) return 'border-l-yellow-500';
