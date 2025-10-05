@@ -5,12 +5,17 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { toast } from 'sonner';
-import { ArrowLeft, Bell, Trash2, TestTube2, Smartphone, Wifi, Download, Upload, Mail } from 'lucide-react';
+import { ArrowLeft, Bell, Trash2, TestTube2, Smartphone, Wifi, Download, Upload, Mail, ChevronDown, Share2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { BottomNavigation } from '@/components/BottomNavigation';
 import { EmailNotificationSettings } from '@/components/EmailNotificationSettings';
+import { SyncSenderDialog } from '@/components/SyncSenderDialog';
+import { SyncReceiverDialog } from '@/components/SyncReceiverDialog';
+import { SyncMergeDialog, MergeStrategy, mergeMedications } from '@/components/SyncMergeDialog';
 import { useMedications } from '@/hooks/useMedications';
+import { Medication } from '@/types/medication';
 import {
   getNotificationSettings,
   saveNotificationSettings,
@@ -23,7 +28,7 @@ import {
 
 const Settings = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { exportMedications, importMedications } = useMedications();
+  const { medications, exportMedications, importMedications } = useMedications();
   const [settings, setSettings] = useState<NotificationSettingsType>(getNotificationSettings());
   const [showEmailSettings, setShowEmailSettings] = useState(false);
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>(
@@ -31,6 +36,13 @@ const Settings = () => {
   );
   const [swStatus, setSwStatus] = useState<'active' | 'installing' | 'waiting' | 'none'>('none');
   const [cacheSize, setCacheSize] = useState<string>('Berechne...');
+  
+  // WebRTC Sync states
+  const [showSenderDialog, setShowSenderDialog] = useState(false);
+  const [showReceiverDialog, setShowReceiverDialog] = useState(false);
+  const [showMergeDialog, setShowMergeDialog] = useState(false);
+  const [pendingMedications, setPendingMedications] = useState<Medication[]>([]);
+  const [showAdvancedExport, setShowAdvancedExport] = useState(false);
 
   useEffect(() => {
     checkServiceWorkerStatus();
@@ -130,6 +142,40 @@ const Settings = () => {
     }
   };
 
+  // WebRTC Sync handlers
+  const handleDataReceived = (receivedMedications: Medication[]) => {
+    if (medications.length > 0) {
+      // Show merge dialog if user already has medications
+      setPendingMedications(receivedMedications);
+      setShowMergeDialog(true);
+    } else {
+      // Directly import if no existing medications
+      const success = importMedications(JSON.stringify(receivedMedications));
+      if (success) {
+        toast.success('Daten empfangen', {
+          description: `${receivedMedications.length} Medikamente erfolgreich importiert.`,
+        });
+      }
+    }
+  };
+
+  const handleMergeConfirm = (strategy: MergeStrategy) => {
+    const merged = mergeMedications(medications, pendingMedications, strategy);
+    const success = importMedications(JSON.stringify(merged));
+    
+    if (success) {
+      const message = strategy === 'merge' 
+        ? `${pendingMedications.length} neue Medikamente hinzugefügt`
+        : `Alle Daten ersetzt mit ${pendingMedications.length} Medikamenten`;
+      
+      toast.success('Synchronisation abgeschlossen', {
+        description: message,
+      });
+    }
+    
+    setPendingMedications([]);
+  };
+
   const getPermissionBadge = () => {
     switch (notificationPermission) {
       case 'granted':
@@ -170,43 +216,89 @@ const Settings = () => {
           </div>
         </div>
 
-        {/* App Functions */}
+        {/* Sync & Backup */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Smartphone className="h-5 w-5" />
-              App-Funktionen
+              <Share2 className="h-5 w-5" />
+              Sync & Backup
             </CardTitle>
             <CardDescription>
-              Daten verwalten und Email-Einstellungen
+              Medikamente zwischen Geräten synchronisieren
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Button
-              onClick={handleExport}
-              variant="outline"
-              className="w-full justify-start"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Export Medikamentenliste
-            </Button>
-            
-            <Button
-              onClick={handleImportClick}
-              variant="outline"
-              className="w-full justify-start"
-            >
-              <Upload className="h-4 w-4 mr-2" />
-              Import Medikamentenliste
-            </Button>
+            {/* Main Sync Buttons */}
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                onClick={() => setShowSenderDialog(true)}
+                variant="default"
+                className="w-full"
+                disabled={medications.length === 0}
+              >
+                <Share2 className="h-4 w-4 mr-2" />
+                Daten teilen
+              </Button>
+              
+              <Button
+                onClick={() => setShowReceiverDialog(true)}
+                variant="outline"
+                className="w-full"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Daten empfangen
+              </Button>
+            </div>
 
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".json"
-              onChange={handleImport}
-              style={{ display: 'none' }}
-            />
+            {medications.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center">
+                Füge erst Medikamente hinzu, um sie zu teilen
+              </p>
+            )}
+
+            <Separator />
+
+            {/* Advanced: JSON Export/Import */}
+            <Collapsible open={showAdvancedExport} onOpenChange={setShowAdvancedExport}>
+              <CollapsibleTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-between text-sm"
+                >
+                  Erweitert: JSON Export/Import
+                  <ChevronDown className={`h-4 w-4 transition-transform ${showAdvancedExport ? 'rotate-180' : ''}`} />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-2 pt-2">
+                <Button
+                  onClick={handleExport}
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Export als JSON
+                </Button>
+                
+                <Button
+                  onClick={handleImportClick}
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start"
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  Import JSON Datei
+                </Button>
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".json"
+                  onChange={handleImport}
+                  style={{ display: 'none' }}
+                />
+              </CollapsibleContent>
+            </Collapsible>
 
             <Separator />
 
@@ -477,6 +569,27 @@ const Settings = () => {
       
       {/* Bottom Navigation */}
       <BottomNavigation />
+
+      {/* Sync Dialogs */}
+      <SyncSenderDialog
+        open={showSenderDialog}
+        onOpenChange={setShowSenderDialog}
+        medications={medications}
+      />
+
+      <SyncReceiverDialog
+        open={showReceiverDialog}
+        onOpenChange={setShowReceiverDialog}
+        onDataReceived={handleDataReceived}
+      />
+
+      <SyncMergeDialog
+        open={showMergeDialog}
+        onOpenChange={setShowMergeDialog}
+        existingCount={medications.length}
+        incomingCount={pendingMedications.length}
+        onConfirm={handleMergeConfirm}
+      />
     </div>
   );
 };
