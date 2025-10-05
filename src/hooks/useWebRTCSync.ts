@@ -169,7 +169,7 @@ export const useWebRTCSync = () => {
         }
       }, 1000);
 
-      // Listen for answer
+      // Listen for answer via Realtime
       const channel = supabase
         .channel(`sync-${session.id}`)
         .on(
@@ -202,8 +202,39 @@ export const useWebRTCSync = () => {
         )
         .subscribe();
 
+      // Fallback: Poll for updates every 2 seconds (in case Realtime isn't enabled)
+      const pollInterval = setInterval(async () => {
+        try {
+          const { data: updatedSession } = await (supabase as any)
+            .from('sync_sessions')
+            .select('*')
+            .eq('id', session.id)
+            .single();
+
+          if (updatedSession?.answer && peerConnection.current && !peerConnection.current.remoteDescription) {
+            setStatus('connecting');
+            await peerConnection.current.setRemoteDescription(
+              new RTCSessionDescription(updatedSession.answer)
+            );
+
+            // Add ICE candidates
+            if (updatedSession.ice_candidates) {
+              for (const candidate of updatedSession.ice_candidates) {
+                await peerConnection.current.addIceCandidate(
+                  new RTCIceCandidate(candidate)
+                );
+              }
+            }
+            clearInterval(pollInterval);
+          }
+        } catch (err) {
+          console.error('Polling error:', err);
+        }
+      }, 2000);
+
       return () => {
         channel.unsubscribe();
+        clearInterval(pollInterval);
       };
     } catch (err) {
       console.error('Error starting sender:', err);
@@ -327,8 +358,39 @@ export const useWebRTCSync = () => {
         )
         .subscribe();
 
+      // Fallback: Poll for ICE candidate updates every 2 seconds
+      let lastCandidateCount = session.ice_candidates?.length || 0;
+      const pollInterval = setInterval(async () => {
+        try {
+          const { data: updatedSession } = await (supabase as any)
+            .from('sync_sessions')
+            .select('ice_candidates')
+            .eq('id', session.id)
+            .single();
+
+          if (updatedSession?.ice_candidates && updatedSession.ice_candidates.length > lastCandidateCount) {
+            const newCandidates = updatedSession.ice_candidates.slice(lastCandidateCount);
+            for (const candidate of newCandidates) {
+              try {
+                if (peerConnection.current) {
+                  await peerConnection.current.addIceCandidate(
+                    new RTCIceCandidate(candidate)
+                  );
+                }
+              } catch (err) {
+                console.error('Error adding ICE candidate:', err);
+              }
+            }
+            lastCandidateCount = updatedSession.ice_candidates.length;
+          }
+        } catch (err) {
+          console.error('Polling error:', err);
+        }
+      }, 2000);
+
       return () => {
         channel.unsubscribe();
+        clearInterval(pollInterval);
       };
     } catch (err: any) {
       console.error('Error starting receiver:', err);
